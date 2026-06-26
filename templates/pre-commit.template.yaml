@@ -1,0 +1,55 @@
+# Pre-commit hook config — drop into project root as .pre-commit-config.yaml
+# Then: pre-commit install
+# Enforces: no commit without tests, lint clean, no obvious secrets
+
+repos:
+  # ---- Universal ----
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+
+  # ---- Secret scanning ----
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
+
+  # ---- Go projects: uncomment block below ----
+  # - repo: https://github.com/golangci/golangci-lint
+  #   rev: v1.59.1
+  #   hooks:
+  #     - id: golangci-lint
+  # - repo: local
+  #   hooks:
+  #     - id: go-test
+  #       name: go test -race
+  #       entry: go test -race -count=1 ./...
+  #       language: system
+  #       types: [go]
+  #       pass_filenames: false
+  #     - id: tdd-guard
+  #       name: every new .go file must have _test.go
+  #       entry: bash -c 'git diff --cached --name-only --diff-filter=A | grep "\.go$" | grep -v "_test\.go$" | while read f; do test -f "${f%.go}_test.go" || { echo "Missing test for $f"; exit 1; }; done'
+  #       language: system
+  #       pass_filenames: false
+
+  # ---- Python projects: uncomment block below ----
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   rev: v0.5.0
+  #   hooks:
+  #     - id: ruff
+  #     - id: ruff-format
+  # - repo: local
+  #   hooks:
+  #     - id: pytest
+  #       name: pytest
+  #       entry: pytest
+  #       language: system
+  #       types: [python]
+  #       pass_filenames: false

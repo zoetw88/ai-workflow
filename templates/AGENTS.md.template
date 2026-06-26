@@ -1,0 +1,83 @@
+# Agent instructions
+
+> This file is the repo-level wrapper around the user's personal workflow system.
+> Keep it thin. Put global process in `~/.ai-workflow/*` and repo-specific rules here.
+
+**Project type: personal | team** ← set one. Drives the close-the-loop rules below:
+- `personal` → `devlog.md` + `todo.md` are MANDATORY every session.
+- `team` → they follow the team's convention; skip until the team has adopted them.
+
+## Project context
+<1-2 paragraphs. What this service does.>
+
+## Workflow expectation
+
+For non-trivial changes, follow the 6-stage workflow:
+Define → Plan → Build → Verify → Review → Ship.
+
+Reference the canonical version at `~/.ai-workflow/workflow.md`.
+
+## Context discipline (read first, close the loop)
+
+Docs are two-tier. Never overwrite history; keep the living tier aligned with reality.
+
+- **Living tier** (must always reflect the current state): `.spec/<ticket>/current.md`, `.spec/<ticket>/tasks.md`, and project-level `devlog.md` + `todo.md`.
+- **Historical tier** (append-only, may diverge from reality): `.spec/<ticket>/audit.md`, `.spec/<ticket>/adr-*.md`. To overturn a decision, write a NEW ADR and mark the old one `Superseded by ADR-NNNN` — do not edit its body.
+
+### Before you plan (Define / Plan) — read first
+1. Read `current.md` + every settled ADR for this ticket BEFORE proposing an approach.
+2. State which docs you consulted.
+3. If the proposed approach conflicts with a recorded decision, STOP and flag it now — do NOT defer to Review. Let the user decide: honor the past decision, or update the docs because the new requirement supersedes it.
+
+### Close the loop (before opening a PR) — end-of-session checklist
+1. Update every living-tier doc the change touched (`current.md`, `tasks.md`).
+2. Append a newest-on-top entry to project `devlog.md`, linking back to the ticket's spec/ADR and noting which session it continues.
+3. Refresh `todo.md`.
+4. Commit the doc updates into the SAME PR as the change.
+
+> Steps 2–3 depend on **Project type** (top of file): `personal` → mandatory; `team` → follow the team's convention, skip until adopted. `devlog.md` / `todo.md` are project-level (one rolling file each, spanning all tickets), not per-ticket.
+
+Behavior-affecting change → update `current.md` (it IS the spec). Implementation-only decision → ADR only.
+
+## Global sources
+
+Align with:
+
+- `~/.codex/AGENTS.md`
+- `~/.ai-workflow/workflow.md`
+- `~/.ai-workflow/pitfalls/<language>.md`
+- `~/.ai-workflow/prompts/review-checklist.md`
+- `~/.codex/config.toml`
+
+## Task-local files
+
+For a substantial task, create or update:
+
+- `.spec/<ticket>/tasks.md`
+- `.spec/<ticket>/audit.md`
+- `.spec/<ticket>/ai-development-map.md`
+- `.spec/<ticket>/adr-*.md` when an architecture decision is made
+
+Use `~/.ai-workflow/templates/ai-development-map.md` as the handoff template.
+
+## Pitfalls (read before writing in matching language)
+
+- Go: `~/.ai-workflow/pitfalls/go.md`
+- Python: `~/.ai-workflow/pitfalls/python.md`
+
+## Repo verification
+
+- lint: <repo command>
+- narrow tests: <repo command>
+- broader tests: <repo command>
+
+## Conventions
+
+<project-specific>
+
+## Out of bounds
+
+> Applies to `Project type: team`. For `personal`, drop this section — the global
+> "destructive operations require explicit approval" rule is the only backstop you need.
+
+- <repo-specific constraints>
