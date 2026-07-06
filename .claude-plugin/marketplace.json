@@ -1,5 +1,6 @@
 {
   "name": "zoetw88",
+  "description": "Zoe's AI development workflow as an installable Claude Code plugin: six-stage workflow, grill-me, verify-done, Go/Python pitfalls, and planner/builder/reviewer subagents.",
   "owner": {
     "name": "zoetw88"
   },
