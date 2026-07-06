@@ -1,6 +1,13 @@
 # Company-internal project notes — never publish to a personal repo
 projects/
 
+# Live personal/company data — local machine only, never tracked
+# (system-map is an architecture diagram; portfolio is your project status;
+#  repos.local.json holds company repo paths — see scripts/repos.local.json.example)
+/system-map.md
+/portfolio.md
+scripts/repos.local.json
+
 # Local machine settings
 .claude/settings.local.json
 
