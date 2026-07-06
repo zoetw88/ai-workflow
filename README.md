@@ -46,6 +46,7 @@ The index hierarchy, from widest zoom to narrowest — each level answers one qu
 ├── pitfalls/                    Language/library traps AI repeatedly misses
 │   ├── go.md                    Pre-write checklist for Go (context, goroutines, …)
 │   ├── python.md                Python/Django traps (mutable defaults, …)
+│   ├── llm.md                   LLM-app traps: prompt injection, secrets, evals, cost
 │   └── (add more as you encounter them)
 │
 ├── templates/                   Drop-in files for projects and tickets
@@ -72,7 +73,8 @@ The index hierarchy, from widest zoom to narrowest — each level answers one qu
 │       ├── skills/              grill-me, six-stage-workflow, verify-done,
 │       │                        go-pitfalls, python-pitfalls,
 │       │                        build-system-map, portfolio-scan
-│       └── agents/              planner (Define/Plan), builder (Build), reviewer (Review)
+│       ├── agents/              planner (Define/Plan), builder (Build), reviewer (Review)
+│       └── evals/               Regression cases per skill + baseline scores
 │
 ├── scripts/                     Automation (PowerShell, cross-platform via pwsh)
 │   ├── start-task.ps1           Bootstrap a ticket: .spec/<ticket>/ scaffolding
