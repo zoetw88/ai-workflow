@@ -146,6 +146,10 @@ each session — close-the-loop keeps it patched), and `prompts/portfolio-scan.m
 | A process change | `workflow.md` |
 | A principle change | `PHILOSOPHY.md` (rare) |
 
+## Built with this workflow
+
+- [job-tracker-skill](https://github.com/zoetw88/job-tracker-skill) — Claude Code skill for systematic job search tracking: funnel metrics, interview logs, follow-up cadence, rejection-stage analysis.
+
 ## Versioning
 
 This directory is a git repo. Commit and push every change — when you change
