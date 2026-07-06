@@ -1,7 +1,7 @@
 {
   "name": "ai-workflow",
-  "version": "0.1.0",
-  "description": "Six-stage AI development workflow: grill-me requirement clarification, spec-driven TDD build in isolated worktrees, evidence-based verify, risk-tiered review — plus planner/builder/reviewer subagents and Go/Python pitfall checklists.",
+  "version": "0.2.0",
+  "description": "Six-stage AI development workflow: grill-me requirement clarification, spec-driven TDD build in isolated worktrees, evidence-based verify, risk-tiered review — plus planner/builder/reviewer subagents, Go/Python pitfall checklists, and cross-repo system-map / portfolio scans.",
   "author": {
     "name": "zoetw88"
   }
