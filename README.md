@@ -70,7 +70,8 @@ The index hierarchy, from widest zoom to narrowest — each level answers one qu
 │   └── plugin/                  Installable plugin (see Setup below)
 │       ├── .claude-plugin/plugin.json
 │       ├── skills/              grill-me, six-stage-workflow, verify-done,
-│       │                        go-pitfalls, python-pitfalls
+│       │                        go-pitfalls, python-pitfalls,
+│       │                        build-system-map, portfolio-scan
 │       └── agents/              planner (Define/Plan), builder (Build), reviewer (Review)
 │
 ├── scripts/                     Automation (PowerShell, cross-platform via pwsh)
@@ -115,9 +116,10 @@ Claude Code skills + subagents install as a plugin — inside Claude Code run:
 /plugin install ai-workflow@zoetw88
 ```
 
-This gives you the `six-stage-workflow`, `grill-me`, `verify-done`, `go-pitfalls`, and
-`python-pitfalls` skills plus the `planner` / `builder` / `reviewer` subagents, with
-one-command updates — no manual copying into `~/.claude/`.
+This gives you the `six-stage-workflow`, `grill-me`, `verify-done`, `go-pitfalls`,
+`python-pitfalls`, `build-system-map`, and `portfolio-scan` skills plus the
+`planner` / `builder` / `reviewer` subagents, with one-command updates — no manual
+copying into `~/.claude/`.
 
 Per new project: copy `templates/AGENTS.md.template` → `AGENTS.md`,
 `templates/CLAUDE.md.template` → `CLAUDE.md`, and optionally
