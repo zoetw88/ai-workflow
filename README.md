@@ -30,6 +30,7 @@ Read in this order:
 │   ├── refactor.md              Behavior-preserving cleanup
 │   ├── debug-ai-bug.md          Locating bugs in AI-generated code
 │   ├── parallel-audit.md        Fan-out read-only audits across repos/modules
+│   ├── portfolio-scan.md        gh-CLI scan of ALL repos → regenerates portfolio.md
 │   └── verify-done.md           Evidence block required before claiming "done" (Verify stage)
 │
 ├── pitfalls/                    Language/library traps AI repeatedly misses
@@ -44,6 +45,7 @@ Read in this order:
 │   ├── devlog.md                Project-level rolling devlog        (historical tier)
 │   ├── todo.md                  Project-level rolling work queue    (living tier)
 │   ├── ai-development-map.md    Per-ticket handoff read-order for agents
+│   ├── portfolio.md             Cross-project map: what every repo is doing (living tier)
 │   ├── AGENTS.md.template       Project agent rules — the single source of truth
 │   ├── CLAUDE.md.template       Thin shim that imports AGENTS.md (@AGENTS.md)
 │   └── pre-commit.template.yaml Pre-commit hooks: tests, lint, secret scan
