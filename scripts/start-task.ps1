@@ -198,14 +198,22 @@ function Ensure-Worktree {
 }
 
 function Get-RepoChoices {
-    return [ordered]@{
+    # Personal/company repo paths live in the gitignored repos.local.json
+    # (see repos.local.json.example) so they never enter version control.
+    $choices = [ordered]@{
         "current" = (Get-Location).Path
-        "UIS" = "C:\SpringdelWork\Python\UIS"
-        "DES" = "C:\SpringdelWork\Golang\DES"
-        "DLS" = "C:\SpringdelWork\Golang\DLS\device-log-service"
-        "windows-service" = "C:\SpringdelWork\Golang\Windows\springdel-windows-service"
-        "custom" = ""
     }
+
+    $localMapPath = Join-Path $PSScriptRoot "repos.local.json"
+    if (Test-Path $localMapPath) {
+        $localMap = Get-Content -LiteralPath $localMapPath -Raw | ConvertFrom-Json
+        foreach ($prop in $localMap.PSObject.Properties) {
+            $choices[$prop.Name] = [string]$prop.Value
+        }
+    }
+
+    $choices["custom"] = ""
+    return $choices
 }
 
 function Get-TaskTypeChoices {
