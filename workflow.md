@@ -64,6 +64,11 @@ line in the same PR (see `prompts/system-map-scan.md`).
    edge, or shared lib, patch `~/.ai-workflow/system-map.md` too.
 5. Commit the doc updates into the SAME PR as the change.
 
+Steps 1–4 are mechanically enforced at push time by
+`scripts/check_close_the_loop.py` (wired via `templates/pre-commit.template.yaml`,
+pre-push stage): a push that changes code without touching any living-tier doc is
+rejected. Escape hatch for intentional exceptions: `CLOSE_THE_LOOP=skip git push`.
+
 ### Project type
 
 Each project declares `Project type: personal | team` at the top of its `CLAUDE.md` / `AGENTS.md`:
