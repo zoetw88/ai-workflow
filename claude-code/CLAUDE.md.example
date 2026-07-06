@@ -1,112 +1,120 @@
-# Working rules
+# Zoe Global Agent Rules
 
-These are global instructions for Claude Code. Drop into `~/.claude/CLAUDE.md`.
+These are global instructions for coding agents. Drop into `~/.claude/CLAUDE.md`
+(Claude Code) and `~/.codex/AGENTS.md` (Codex) — keep both copies identical apart
+from the trailing RTK reference path.
 
----
-
-## 1. Never answer "done?" from memory — produce evidence
-
-When asked whether something is implemented / fixed / done,
-**do not rely on conversation memory**.
-
-Required answer format:
-
-```
-Verified via grep/Read:
-  ✅ <criterion> → <file:line> (commit <hash> if known)
-  ❌ <criterion> → not found
-```
-
-If you can't produce file paths + line numbers, the honest answer is
-"I don't know yet, let me check" — then grep/Read.
+Rewritten 2026-07-06 for the Fable 5 generation: step-by-step workflow lists were
+removed (the model plans those itself); what remains is goals, boundaries, and
+acceptance criteria.
 
 ---
 
-## 2. Multi-part tasks → write acceptance criteria *before* coding
+## Language
 
-When a task has more than one moving piece (e.g. "make Kafka
-idempotent" implies producer + consumer + test + docs), the first
-thing you do is write a checklist into the project's progress file:
+- Respond in Traditional Chinese by default.
+- Keep answers direct and dense. No padding.
+
+## Candor
+
+- Disagree when the evidence disagrees: challenge flawed assumptions and name risks or missing considerations directly. Facts over politeness.
+- When asked to evaluate a plan, decision, or piece of work, lead with concrete failure scenarios and evidence, not affirmation.
+
+## Evidence Before "Done"
+
+- Claims of progress or completion point to evidence from this session: test output, grep/read results, or commands, cited with files and lines. Not verified — say so. Partial — say what is missing.
+- Non-trivial changes need acceptance criteria in the project spec/progress file and targeted tests. Wire new modules into their caller in the same change. Record blockers separately from code failures.
+- Auth, database transactions, realtime, payments, messaging, legal/privacy, or user-data work is not production-done without integration or smoke evidence. If the environment blocks that evidence, record the blocker.
+- Frontend/UI changes: before claiming done, run targeted widget/app-flow tests and, when a runnable UI target exists, open the actual screen (emulator/browser) and check layout, states, and the happy path. Never done from code review or memory alone.
+
+## Code Change Approval
+
+- On an isolated worktree or branch, edit freely. Ask Zoe before: merging into the integration/main branch, database migrations, destructive or irreversible operations, and anything touching payments or user data in a deployed environment.
+- When working directly on a shared branch with no isolation, ask before editing runtime-affecting code.
+- Global agent-rule files may be edited when Zoe explicitly asks to update the rules.
+
+## Architecture Boundaries
+
+Use Clean Architecture unless the repo explicitly documents another pattern.
+
+Dependency direction:
+
+```text
+ui -> application -> domain <- data
+```
+
+- `domain/` is pure models and business logic — no Flutter, Supabase, Drift, filesystem, network, or platform imports.
+- UI never sees data-layer internals: no data-service/adapter/SDK imports, no raw rows, JSON maps, or SDK response objects. Row-to-model mapping lives in data mappers/repositories.
+- Application code depends on repository/adapter abstractions with intention-revealing methods; controllers do not query Drift/Supabase/SQL directly.
+- User-triggered or multi-step workflows go through command/use-case objects in `application/` — one intent, one `call()`/`execute()`, unit-testable with fakes. UI calls commands; it does not assemble workflows. Data adapters never call upward into application or UI.
+- Entrypoints only initialize platform services and run the app. Seed/demo data belongs in data fakes or test fixtures. Route construction, share sheets, notifications, and plugin mechanics live in UI/platform adapters, not business controllers.
+- Fake/demo adapters implement the same boundary as production adapters.
+- If a requested change would violate these boundaries, refactor the boundary first.
+
+## Scope
+
+Don't add features, refactor, or introduce abstractions beyond what the task requires. Do the simplest thing that works well; avoid premature abstraction and half-finished implementations. Don't add error handling, fallbacks, or validation for scenarios that cannot happen — trust internal code and validate at system boundaries (user input, external APIs). Don't mix formatting churn or unrelated refactors with feature work.
+
+## Privacy And Security
+
+- Never expose raw GPS, personal data, auth tokens, or internal exceptions outside the minimum required boundary.
+- Analytics, feed, and presence payloads must not include raw lat/lng.
+- User identity must come from trusted auth/session state, not client-provided IDs.
+- New endpoints or remote writes need authorization, input validation, abuse/rate consideration, and safe error messages.
+- User-data tasks must answer retention, third-party sharing, disclosure, and deletion behavior before being called complete.
+
+## Pull Requests
+
+Based on Google eng-practices CL guidance plus standard PR-template conventions.
+
+Title: imperative, specific, states the outcome — not the activity. "Make WindowsService test suite compile, run safely, and pass", never "Fix tests" / "Update code". Include the ticket key (e.g. MVP-XXXX) when one exists.
+
+Description template (omit a section only when truly empty):
 
 ```markdown
-## Task: <name>
-- [ ] <atomic criterion 1>
-- [ ] <atomic criterion 2>
-- [ ] <atomic criterion 3>
+## Summary
+2-4 sentences: the problem first, then what this PR does about it.
+Written for a reader with zero session context — it becomes permanent
+history.
+
+## Context
+Ticket, related PRs, root-cause commits (short SHAs), design docs.
+Why now, why this approach; known limitations.
+
+## Changes
+Bulleted, grouped by area. Separate production changes from test-only
+changes explicitly. Call out anything non-obvious or behavior-affecting.
+
+## Testing
+Exact evidence: build/test commands and their results, before/after
+comparisons, manual verification steps. State what was NOT tested and
+any environment blockers.
+
+## Risks
+Backward compatibility, migrations, config, payload/protocol changes,
+rollout concerns. Write "Low/None" with one line of justification
+rather than omitting.
 ```
 
-Then tick items off with commit hashes as you go.
+Rules:
 
----
+- Explain the why, not just the what — vague summaries and missing motivation are the #1 review complaint.
+- Reference evidence precisely (commit SHAs, file paths, test counts), not "various fixes".
+- UI changes: attach screenshots/GIFs.
+- Keep it scannable: bullets over prose walls; bold the load-bearing facts.
+- Target the repo's integration branch (e.g. `dev`) unless the repo documents otherwise; enable close-source-branch on merge.
 
-## 3. Before saying "done" on a full task
+## Project Files
 
-Walk through every unchecked item. Anything unchecked → say so
-explicitly. Never round up.
+Prefer repo/task-specific rules over this global file when they are narrower and coherent.
 
-For Kafka / MQTT / DB-transaction / auth work specifically: an
-integration test must pass before claiming done. These are the
-"half-done is worse than not-done" categories.
+For substantial work, create or update:
 
----
+- `.spec/<ticket>/tasks.md`
+- `.spec/<ticket>/audit.md`
+- `.spec/<ticket>/ai-development-map.md`
+- `.spec/<ticket>/adr-*.md` when there is a real architecture decision
 
-## 4. Update progress file before the conversation ends
+If a repo has no agent rules, add a thin repo `AGENTS.md` with repo-specific commands and boundaries.
 
-When stopping work, the last action is:
-1. Update progress doc (tick what's done, note blocked, what's next)
-2. Commit it (if it lives in the repo)
-
----
-
-## 5. When corrected, capture the lesson
-
-If the user points out drift or a wrong answer:
-1. Fix the immediate issue
-2. Ask: is this a one-off, or a recurring pattern?
-3. If recurring → add a rule to this file or to a project-level
-   `gotchas.md`.
-
----
-
-## 6. Don't pad
-
-Direct, dense answers. No "great question!", no recap, no
-"let me know if you need anything else". Get to the point. Structure
-with headings or lists when it actually helps scanning.
-
----
-
-## 7. Standard project file layout
-
-When working on any repo, these files are the authoritative source
-for shared context. **Check them before assuming anything.**
-
-| File | Purpose | Required when |
-|---|---|---|
-| `CLAUDE.md` (repo root) | Repo-specific rules, overrides global | Any active repo |
-| `.spec/current.md` | Current feature spec | During structured workflow |
-| `.spec/tasks.md` | Ordered atomic tasks | During structured workflow |
-| `.claude/sprint.md` | Cross-conversation progress | Multi-session work |
-| `docs/architecture.md` | Modules, data flow, deps | Projects > 5K lines |
-| `docs/decisions.md` | ADRs: why this choice not that | Append on every architectural call |
-| `docs/gotchas.md` | Non-obvious traps, debug lessons | Append after every Review |
-
-If a required file is missing, suggest creating it from template
-before proceeding.
-
----
-
-## 8. Multi-criteria tasks must go through a structured flow
-
-If a task has more than one acceptance criterion, **do not start
-coding in an ad-hoc conversation**. Suggest:
-
-> 這個任務有 N 個 criteria，建議走 `/flow` 確保不漏。要直接走 flow 嗎？
-
-Escape hatches:
-- **≤2 criteria**: suggest `/flow --lightweight`
-- **Explicit override**: only if user says "skip flow"
-
-**Why.** A structured flow enforces acceptance criteria → atomic tasks
-→ one task per commit → test evidence reconciliation → review.
-Ad-hoc conversations skip these gates.
+@RTK.md
