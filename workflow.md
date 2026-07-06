@@ -234,15 +234,22 @@ Human reads all three, decides what to accept.
 
 | Stage   | Model (Claude)        | Model (Codex)              |
 |---------|-----------------------|----------------------------|
-| Define  | Fable 5 (else Opus)   | gpt-5.4 + high reasoning   |
-| Plan    | Fable 5 (else Opus)   | gpt-5.4 + high reasoning   |
-| Build   | Sonnet                | gpt-5.4-mini + flex tier   |
-| Verify  | Haiku                 | gpt-5.4-mini + low reasoning|
-| Review  | Fable 5 (else Opus)   | gpt-5.4 + high reasoning   |
-| Ship    | Haiku                 | gpt-5.4-mini + flex tier   |
+| Define  | Opus 4.8              | gpt-5.4 + high reasoning   |
+| Plan    | Opus 4.8              | gpt-5.4 + high reasoning   |
+| Build   | Sonnet 5              | gpt-5.4-mini + flex tier   |
+| Verify  | Haiku 4.5             | gpt-5.4-mini + low reasoning|
+| Review  | Opus 4.8              | gpt-5.4 + high reasoning   |
+| Ship    | Haiku 4.5             | gpt-5.4-mini + flex tier   |
 
-Claude 5 family note: Fable 5 sits above Opus — spend it on the judgment-heavy stages
-(Define / Plan / Review); Build/Verify/Ship stay on the cheaper tiers. Revisit this table
+Opus 4.8 is the workhorse ($5/$25 per MTok — half of Fable 5's $10/$50, and Anthropic's
+own recommended default). Escalate to Fable 5 only where its 2× price buys real judgment:
+
+- ADR-level architecture decisions, and Define/Plan on the hardest long-horizon tickets
+- Judge / second opinion in the high-risk 3-lens review panel
+
+Fable 5 caveats: hard-task turns can run minutes (plan timeouts/streaming around it),
+it requires 30-day data retention, and its cyber safety classifiers can false-positive on
+legitimate security-review work — keep the security lens on Opus 4.8. Revisit this table
 whenever a model family ships.
 
 ## What humans always own
