@@ -48,13 +48,16 @@ Read in this order:
 │   ├── CLAUDE.md.template       Thin shim that imports AGENTS.md (@AGENTS.md)
 │   └── pre-commit.template.yaml Pre-commit hooks: tests, lint, secret scan
 │
+├── .claude-plugin/
+│   └── marketplace.json         Makes this repo a Claude Code plugin marketplace
+│
 ├── claude-code/                 Claude Code-specific glue (references the layers above)
 │   ├── CLAUDE.md.example        Global rules — drop into ~/.claude/CLAUDE.md
-│   ├── skills/grill-me.md       Skill wrapper around prompts/grill-me.md
-│   └── subagents/               Workflow-stage subagents
-│       ├── planner.md           Define/Plan — clarifies, writes specs, no code
-│       ├── builder.md           Build — one slice at a time, TDD
-│       └── reviewer.md          Review — fresh context, spec conformance + AI smells
+│   └── plugin/                  Installable plugin (see Setup below)
+│       ├── .claude-plugin/plugin.json
+│       ├── skills/              grill-me, six-stage-workflow, verify-done,
+│       │                        go-pitfalls, python-pitfalls
+│       └── agents/              planner (Define/Plan), builder (Build), reviewer (Review)
 │
 ├── scripts/                     Automation (PowerShell, cross-platform via pwsh)
 │   ├── start-task.ps1           Bootstrap a ticket: .spec/<ticket>/ scaffolding
@@ -67,8 +70,10 @@ Read in this order:
 ## How tools consume this
 
 - **Claude Code** — global rules live in `~/.claude/CLAUDE.md` (start from
-  `claude-code/CLAUDE.md.example`); skills in `~/.claude/skills/*/SKILL.md` and
-  subagents in `~/.claude/agents/` reference the files here.
+  `claude-code/CLAUDE.md.example`); skills and subagents install as a plugin from
+  `claude-code/plugin/` (see Setup). Plugin skills that mirror tool-agnostic files
+  (workflow, verify-done, pitfalls) embed a copy with a `Canonical source` header —
+  when you change one side, update the other.
 - **Codex** — `~/.codex/AGENTS.md` mirrors the same global rules; per-project
   `AGENTS.md` files reference these files.
 - **Project-level** — each repo has an `AGENTS.md` (from
@@ -89,6 +94,17 @@ source ~/.ai-workflow/shell/aliases.sh
 cp ~/.ai-workflow/claude-code/CLAUDE.md.example ~/.claude/CLAUDE.md   # then personalize
 ```
 
+Claude Code skills + subagents install as a plugin — inside Claude Code run:
+
+```
+/plugin marketplace add zoetw88/ai-workflow
+/plugin install ai-workflow@zoetw88
+```
+
+This gives you the `six-stage-workflow`, `grill-me`, `verify-done`, `go-pitfalls`, and
+`python-pitfalls` skills plus the `planner` / `builder` / `reviewer` subagents, with
+one-command updates — no manual copying into `~/.claude/`.
+
 Per new project: copy `templates/AGENTS.md.template` → `AGENTS.md`,
 `templates/CLAUDE.md.template` → `CLAUDE.md`, and optionally
 `templates/pre-commit.template.yaml` → `.pre-commit-config.yaml`.
@@ -105,7 +121,7 @@ Per new ticket: run `scripts/start-task.ps1` (or copy `templates/spec.md` and
 | A repo-specific gotcha | that repo's `AGENTS.md`, not here |
 | A ticket-specific workaround | that ticket's `.spec/<ticket>/ai-development-map.md` |
 | A new doc/file every project needs | `templates/` |
-| A Claude Code skill or subagent | `claude-code/`, thin — logic stays in `prompts/`/`workflow.md` |
+| A Claude Code skill or subagent | `claude-code/plugin/skills/` or `agents/` — bump `plugin.json` version; mirrored skills carry a `Canonical source` header, keep both sides in sync |
 | A process change | `workflow.md` |
 | A principle change | `PHILOSOPHY.md` (rare) |
 
