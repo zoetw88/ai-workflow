@@ -1,10 +1,12 @@
 # Tasks
 
-Each task ≤ 1 commit. Done = test passes + reviewed.
+Each task: 2–5 minutes of focused agent work, ≤ 1 commit. If it looks bigger, split it —
+coarse tasks are where agents start improvising. Done = Verify command passes + reviewed.
 
 - [ ] task-1: <small atomic change>
-  - Files: <expected files touched>
+  - Files: <exact paths this task touches>
   - Test: <test case from spec this covers>
+  - Verify: <command that proves it, e.g. `go test ./pkg/x -run TestY`>
 
 - [ ] task-2: ...
 
