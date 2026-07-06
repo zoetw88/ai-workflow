@@ -6,10 +6,27 @@ Based on Addy Osmani's agent-skills, simplified.
 
 1. **Define** — Grill the user. Produce `.spec/current.md`.
 2. **Plan** — Break the spec into atomic tasks. Produce `.spec/tasks.md`.
-3. **Build** — Implement one task at a time. TDD. One commit per task.
-4. **Verify** — Run tests. Tests are proof. Verify is NOT review.
+3. **Build** — Implement one task at a time, in an isolated worktree (see Workspace isolation). TDD. One commit per task.
+4. **Verify** — Run tests. Tests are proof. Verify is NOT review. Before claiming done, produce the evidence block from `prompts/verify-done.md`.
 5. **Review** — Independent reviewer (fresh context). Check spec conformance + AI smells.
 6. **Ship** — Commit message, PR description, ADR if architectural. Run the close-the-loop checklist (see Context discipline) before opening the PR.
+
+## Workspace isolation (git worktrees)
+
+Build happens on a dedicated branch in a dedicated worktree — never on the main checkout:
+
+```bash
+git worktree add ../<repo>-<ticket> -b <ticket>    # or: wt <ticket> (shell/aliases.sh)
+```
+
+- **Verify the baseline is green BEFORE writing anything.** Run the test suite in the fresh
+  worktree first. If it's already red, that's an `environment blocker` or `test defect` to
+  report (see Blockers) — not something to "fix along the way". A red baseline blamed on new
+  code is a classic time sink.
+- One ticket = one branch = one worktree. Parallel tickets never share a working directory.
+- Remove the worktree at Ship, after the PR is opened: `git worktree remove ../<repo>-<ticket>`.
+
+`scripts/start-task.ps1` offers to create the worktree during ticket intake.
 
 ## Context discipline (two-tier docs)
 
@@ -149,7 +166,24 @@ Then synthesize the four reports into `.spec/<ticket>/audit.md`.
 
 This is the move I should have made on MVP-6241 task-1 — instead I serially grepped each repo, which worked but took ~4× longer and pulled raw results into main context.
 
-### Review pattern (concrete example)
+### Review depth scales with risk
+
+Default is **one reviewer** (fresh context, `prompts/review-checklist.md`). A full multi-lens
+panel on every diff burns tokens without producing extra findings on low-risk changes —
+superpowers v6 reached the same conclusion when it merged its two per-task reviewers into one
+with no measured quality loss.
+
+Escalate to the 3-lens panel below only when the diff touches:
+
+- auth / permissions / session handling
+- money, transactions, or data migrations
+- concurrency or caching
+- public API contracts
+
+Same list as PHILOSOPHY.md's "half-done is worse than not-done" categories — the ones that
+already demand integration tests get the panel; everything else gets one reviewer.
+
+### Review pattern (3-lens panel, high-risk diffs only)
 
 After Build is complete, in one message spawn:
 

@@ -54,3 +54,13 @@
 
 ## Risks
 - <risk> → mitigation
+
+## Self-review (30 seconds, before handing off to Plan)
+
+Each "no" goes back into the spec above — not into a mental note.
+
+- [ ] Every test case is falsifiable (a command or observable behavior can prove it)
+- [ ] Scope Out + Non-goals actually exclude something (empty = scope not thought through)
+- [ ] No conflict with settled ADRs for this area (checked, not assumed)
+- [ ] Error table covers every external dependency listed under Dependencies
+- [ ] Invariants are checkable in a test, not aspirational

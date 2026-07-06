@@ -29,7 +29,8 @@ Read in this order:
 │   ├── review-checklist.md      Priority-ordered review checklist (Review stage)
 │   ├── refactor.md              Behavior-preserving cleanup
 │   ├── debug-ai-bug.md          Locating bugs in AI-generated code
-│   └── parallel-audit.md        Fan-out read-only audits across repos/modules
+│   ├── parallel-audit.md        Fan-out read-only audits across repos/modules
+│   └── verify-done.md           Evidence block required before claiming "done" (Verify stage)
 │
 ├── pitfalls/                    Language/library traps AI repeatedly misses
 │   ├── go.md                    Pre-write checklist for Go (context, goroutines, …)
@@ -60,7 +61,7 @@ Read in this order:
 │   └── build-spec-map.ps1       Generate/diff spec-map.md so the index never drifts
 │
 └── shell/
-    └── aliases.sh               cc/ccr/ccp aliases, ctx, sprint, init-claude-md
+    └── aliases.sh               cc/ccr/ccp aliases, wt/wtrm worktree helpers, ctx, sprint, init-claude-md
 ```
 
 ## How tools consume this
