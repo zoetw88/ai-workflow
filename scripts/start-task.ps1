@@ -93,12 +93,12 @@ function Prompt-Ticket {
     while ($true) {
         $value = Prompt-OptionalText -Title "Ticket / task id" -Default $Default
         if ($value.Length -lt 4) {
-            Write-Host "Ticket is too short. Use something like MVP-8000 or bugfix/profile-ios."
+            Write-Host "Ticket is too short. Use something like PROJ-8000 or bugfix/profile-ios."
             continue
         }
 
         if ($value -match '^\d+$') {
-            Write-Host "Pure numeric tickets are too weak. Include system or context, for example MVP-8000 or DES-3333."
+            Write-Host "Pure numeric tickets are too weak. Include system or context, for example PROJ-8000 or AREA-3333."
             continue
         }
 
