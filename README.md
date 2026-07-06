@@ -7,35 +7,108 @@ The single source of truth shared between Claude Code, Codex, and any future age
 Tool-specific configs (`~/.claude/`, `~/.codex/`) hold tool-specific glue.
 **Anything that should outlive a tool change lives here.**
 
+## Start here
+
+Read in this order:
+
+1. [`PHILOSOPHY.md`](PHILOSOPHY.md) — the six principles behind everything else (evidence over memory, acceptance criteria first, never round up, capture lessons, don't pad).
+2. [`workflow.md`](workflow.md) — the canonical 6-stage workflow (Define → Plan → Build → Verify → Review → Ship), the two-tier doc discipline, parallel-agent patterns, and model assignment per stage.
+3. `templates/` — grab what the workflow tells you to grab.
+
 ## Layout
 
 ```
 ~/.ai-workflow/
-├── README.md              (this file)
-├── pitfalls/              Language- and library-specific traps AI repeatedly misses
-│   ├── go.md
+├── README.md                    (this file)
+├── PHILOSOPHY.md                Six principles for working with AI agents
+├── workflow.md                  The canonical 6-stage workflow + context discipline
+│
+├── prompts/                     Reusable prompt fragments
+│   ├── grill-me.md              Interactive requirement clarification (Define stage)
+│   ├── code-review.md           Adversarial review of freshly written code
+│   ├── review-checklist.md      Priority-ordered review checklist (Review stage)
+│   ├── refactor.md              Behavior-preserving cleanup
+│   ├── debug-ai-bug.md          Locating bugs in AI-generated code
+│   └── parallel-audit.md        Fan-out read-only audits across repos/modules
+│
+├── pitfalls/                    Language/library traps AI repeatedly misses
+│   ├── go.md                    Pre-write checklist for Go (context, goroutines, …)
+│   ├── python.md                Python/Django traps (mutable defaults, …)
 │   └── (add more as you encounter them)
-├── prompts/               Reusable prompt fragments — grill, review checklist, etc.
-│   ├── grill-me.md
-│   └── review-checklist.md
-├── templates/             Spec / task / ADR templates
-│   ├── spec.md
-│   ├── tasks.md
-│   └── adr.md
-└── workflow.md            The canonical 6-stage workflow (Define → Ship)
+│
+├── templates/                   Drop-in files for projects and tickets
+│   ├── spec.md                  .spec/<ticket>/current.md starter   (living tier)
+│   ├── tasks.md                 .spec/<ticket>/tasks.md starter     (living tier)
+│   ├── adr.md                   Architecture Decision Record        (historical tier)
+│   ├── devlog.md                Project-level rolling devlog        (historical tier)
+│   ├── todo.md                  Project-level rolling work queue    (living tier)
+│   ├── ai-development-map.md    Per-ticket handoff read-order for agents
+│   ├── AGENTS.md.template       Project agent rules — the single source of truth
+│   ├── CLAUDE.md.template       Thin shim that imports AGENTS.md (@AGENTS.md)
+│   └── pre-commit.template.yaml Pre-commit hooks: tests, lint, secret scan
+│
+├── claude-code/                 Claude Code-specific glue (references the layers above)
+│   ├── CLAUDE.md.example        Global rules — drop into ~/.claude/CLAUDE.md
+│   ├── skills/grill-me.md       Skill wrapper around prompts/grill-me.md
+│   └── subagents/               Workflow-stage subagents
+│       ├── planner.md           Define/Plan — clarifies, writes specs, no code
+│       ├── builder.md           Build — one slice at a time, TDD
+│       └── reviewer.md          Review — fresh context, spec conformance + AI smells
+│
+├── scripts/                     Automation (PowerShell, cross-platform via pwsh)
+│   ├── start-task.ps1           Bootstrap a ticket: .spec/<ticket>/ scaffolding
+│   └── build-spec-map.ps1       Generate/diff spec-map.md so the index never drifts
+│
+└── shell/
+    └── aliases.sh               cc/ccr/ccp aliases, ctx, sprint, init-claude-md
 ```
 
 ## How tools consume this
 
-- **Claude Code** — skills in `~/.claude/skills/*/SKILL.md` reference these files
-- **Codex** — `AGENTS.md` in each project references these files
-- **Project-level** — each repo has a `CLAUDE.md` + `AGENTS.md` (often symlinked to the same content) that point here
+- **Claude Code** — global rules live in `~/.claude/CLAUDE.md` (start from
+  `claude-code/CLAUDE.md.example`); skills in `~/.claude/skills/*/SKILL.md` and
+  subagents in `~/.claude/agents/` reference the files here.
+- **Codex** — `~/.codex/AGENTS.md` mirrors the same global rules; per-project
+  `AGENTS.md` files reference these files.
+- **Project-level** — each repo has an `AGENTS.md` (from
+  `templates/AGENTS.md.template`) as its single source of truth, plus a thin
+  `CLAUDE.md` that imports it via `@AGENTS.md`. Both point back here for global
+  process. Each project declares `Project type: personal | team` at the top —
+  see `workflow.md` for what that toggles.
+
+## Setup on a new machine
+
+```bash
+git clone <your-private-remote> ~/.ai-workflow
+
+# shell helpers (add to ~/.zshrc or ~/.bashrc)
+source ~/.ai-workflow/shell/aliases.sh
+
+# Claude Code global rules
+cp ~/.ai-workflow/claude-code/CLAUDE.md.example ~/.claude/CLAUDE.md   # then personalize
+```
+
+Per new project: copy `templates/AGENTS.md.template` → `AGENTS.md`,
+`templates/CLAUDE.md.template` → `CLAUDE.md`, and optionally
+`templates/pre-commit.template.yaml` → `.pre-commit-config.yaml`.
+
+Per new ticket: run `scripts/start-task.ps1` (or copy `templates/spec.md` and
+`templates/tasks.md` into `.spec/<ticket>/` by hand).
+
+## Where new content goes
+
+| You learned / built | Put it in |
+|---|---|
+| A reusable prompt pattern | `prompts/` |
+| A language/library trap AI keeps hitting | `pitfalls/<lang>.md` |
+| A repo-specific gotcha | that repo's `AGENTS.md`, not here |
+| A ticket-specific workaround | that ticket's `.spec/<ticket>/ai-development-map.md` |
+| A new doc/file every project needs | `templates/` |
+| A Claude Code skill or subagent | `claude-code/`, thin — logic stays in `prompts/`/`workflow.md` |
+| A process change | `workflow.md` |
+| A principle change | `PHILOSOPHY.md` (rare) |
 
 ## Versioning
 
-This directory should be a git repo. Push it. When you change machines, clone it.
-
-```bash
-cd ~/.ai-workflow && git init && git add . && git commit -m "init"
-# then push to a private repo
-```
+This directory is a git repo. Commit and push every change — when you change
+machines, clone it and you're back.
