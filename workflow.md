@@ -50,12 +50,19 @@ latest `devlog.md` entries), and state which docs you consulted. If the approach
 with a recorded decision, STOP and flag it immediately — do not defer to Review. The user
 decides: honor the past decision, or update the docs because the new requirement supersedes it.
 
+Cross-repo task → also read `~/.ai-workflow/system-map.md` FIRST, before any Explore
+fan-out. Spot-verify only the entry points and edges the ticket touches; do NOT re-explore
+repos the ticket doesn't touch. If the map contradicts reality, the map is stale — fix that
+line in the same PR (see `prompts/system-map-scan.md`).
+
 ### Close the loop (before opening a PR)
 
 1. Update every living-tier doc the change touched (`current.md`, `tasks.md`).
 2. Append a newest-on-top entry to project `devlog.md`, linking back to the ticket's spec/ADR.
 3. Refresh `todo.md`.
-4. Commit the doc updates into the SAME PR as the change.
+4. If the change added/removed/renamed an entry point, public endpoint, event, integration
+   edge, or shared lib, patch `~/.ai-workflow/system-map.md` too.
+5. Commit the doc updates into the SAME PR as the change.
 
 ### Project type
 
@@ -80,10 +87,14 @@ A `spec-map.md` indexes the `.spec/` areas. It earns its place only when there a
 
 ### Portfolio (cross-project, generated)
 
-Above the per-repo indexes sits one more zoom level — the index hierarchy is:
+Above the per-repo indexes sit two more zoom levels — the index hierarchy is:
 
-- `~/.ai-workflow/portfolio.md` — ALL projects: what each repo does, status, current focus,
-  next milestone (template: `templates/portfolio.md`)
+- `~/.ai-workflow/system-map.md` — STRUCTURE across all repos: what each repo does, entry
+  points, public surfaces, integration edges. The agent-facing context cache — built once
+  by `prompts/system-map-scan.md`, patched at close-the-loop, so agents stop re-exploring
+  every repo every session (template: `templates/system-map.md`)
+- `~/.ai-workflow/portfolio.md` — STATUS across all projects: what's active, current focus,
+  next milestone. Human-facing (template: `templates/portfolio.md`)
 - `<repo>/spec-map.md` — areas within one repo
 - `.spec/<ticket>/ai-development-map.md` — read-order within one ticket
 
