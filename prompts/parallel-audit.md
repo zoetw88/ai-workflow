@@ -58,12 +58,12 @@ Do not edit files. Do not run code beyond grep / read.
 
 ## Example: 3-repo audit
 
-For MVP-NNNN spanning UIS / SAS / scep-server:
+For a ticket spanning an admin UI, an auth service, and a cert server:
 
 ```
-Agent 1 (Explore): UIS — find all ProfileType.android references, classify each
-Agent 2 (Explore): SAS — verify config is env-driven; find brand string literals
-Agent 3 (Explore): scep-server — verify no brand-specific code paths
+Agent 1 (Explore): admin-ui — find all ProfileType.android references, classify each
+Agent 2 (Explore): auth-service — verify config is env-driven; find brand string literals
+Agent 3 (Explore): cert-server — verify no brand-specific code paths
 ```
 
 All three in one message. Main session waits for all three reports, then writes audit.md.

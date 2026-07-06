@@ -198,7 +198,7 @@ Agent 4 (Explore): cross-reference shared library usage — under 200 words
 
 Then synthesize the four reports into `.spec/<ticket>/audit.md`.
 
-This is the move I should have made on MVP-6241 task-1 — instead I serially grepped each repo, which worked but took ~4× longer and pulled raw results into main context.
+This is the move I should have made on a real cross-repo audit ticket — instead I serially grepped each repo, which worked but took ~4× longer and pulled raw results into main context.
 
 ### Review depth scales with risk
 
@@ -234,12 +234,16 @@ Human reads all three, decides what to accept.
 
 | Stage   | Model (Claude)        | Model (Codex)              |
 |---------|-----------------------|----------------------------|
-| Define  | Opus                  | gpt-5.4 + high reasoning   |
-| Plan    | Opus                  | gpt-5.4 + high reasoning   |
+| Define  | Fable 5 (else Opus)   | gpt-5.4 + high reasoning   |
+| Plan    | Fable 5 (else Opus)   | gpt-5.4 + high reasoning   |
 | Build   | Sonnet                | gpt-5.4-mini + flex tier   |
 | Verify  | Haiku                 | gpt-5.4-mini + low reasoning|
-| Review  | Opus                  | gpt-5.4 + high reasoning   |
+| Review  | Fable 5 (else Opus)   | gpt-5.4 + high reasoning   |
 | Ship    | Haiku                 | gpt-5.4-mini + flex tier   |
+
+Claude 5 family note: Fable 5 sits above Opus — spend it on the judgment-heavy stages
+(Define / Plan / Review); Build/Verify/Ship stay on the cheaper tiers. Revisit this table
+whenever a model family ships.
 
 ## What humans always own
 
