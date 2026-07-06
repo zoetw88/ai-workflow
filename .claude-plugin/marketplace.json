@@ -1,0 +1,13 @@
+{
+  "name": "zoetw88",
+  "owner": {
+    "name": "zoetw88"
+  },
+  "plugins": [
+    {
+      "name": "ai-workflow",
+      "source": "./claude-code/plugin",
+      "description": "Six-stage AI development workflow: grill-me requirement clarification, spec-driven TDD build in isolated worktrees, evidence-based verify, risk-tiered review — plus planner/builder/reviewer subagents and Go/Python pitfall checklists."
+    }
+  ]
+}
