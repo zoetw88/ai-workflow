@@ -1,14 +1,22 @@
 # Agent instructions
 
-> This file is the repo-level wrapper around the user's personal workflow system.
-> Keep it thin. Put global process in `~/.ai-workflow/*` and repo-specific rules here.
+> Single source of truth for all coding agents in this repo. Codex reads this file
+> directly; Claude Code's `CLAUDE.md` imports it (`@AGENTS.md`) — never maintain the
+> two separately. Keep it thin: global process lives in `~/.ai-workflow/*`,
+> repo-specific rules here.
 
 **Project type: personal | team** ← set one. Drives the close-the-loop rules below:
 - `personal` → `devlog.md` + `todo.md` are MANDATORY every session.
 - `team` → they follow the team's convention; skip until the team has adopted them.
 
 ## Project context
-<1-2 paragraphs. What this service does.>
+<1-2 paragraphs. What this service does, who calls it, what it depends on.>
+
+## Stack
+- Language: <e.g. Go 1.22 / Python 3.11>
+- Framework: <e.g. Django, chi, gRPC>
+- Persistence: <e.g. PostgreSQL, Redis>
+- Deployment: <e.g. Docker on AWS ECS>
 
 ## Workflow expectation
 
