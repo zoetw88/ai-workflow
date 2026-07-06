@@ -167,6 +167,36 @@ function Ensure-SpecScaffold {
     }
 }
 
+function Ensure-Worktree {
+    param(
+        [string]$RepoPath,
+        [string]$Ticket
+    )
+
+    $branch = $Ticket
+    $repoName = Split-Path $RepoPath -Leaf
+    $parent = Split-Path $RepoPath -Parent
+    $worktreePath = Join-Path $parent ("$repoName-" + ($branch -replace '/', '-'))
+
+    if (Test-Path $worktreePath) {
+        Write-Host "Worktree already exists: $worktreePath"
+        return $worktreePath
+    }
+
+    git -C $RepoPath worktree add $worktreePath -b $branch
+    if ($LASTEXITCODE -ne 0) {
+        # branch may already exist — reuse it instead of creating one
+        git -C $RepoPath worktree add $worktreePath $branch
+        if ($LASTEXITCODE -ne 0) {
+            throw "git worktree add failed for $worktreePath (branch $branch)"
+        }
+    }
+
+    Write-Host "Worktree created: $worktreePath"
+    Write-Host "Verify the test baseline is GREEN there before building (workflow.md, Workspace isolation)."
+    return $worktreePath
+}
+
 function Get-RepoChoices {
     return [ordered]@{
         "current" = (Get-Location).Path
@@ -352,6 +382,7 @@ function Build-IntakeBlock {
         "use_grill_me",
         "commit_mode",
         "create_spec_scaffold",
+        "use_worktree",
         "source_type",
         "source_link",
         "priority",
@@ -456,6 +487,7 @@ $scope = switch ($scopeChoice) {
 }
 
 $createSpec = (Prompt-Choice -Title "Create .spec scaffold?" -Options @("yes", "no") -DefaultIndex 0) -eq "yes"
+$useWorktree = (Prompt-Choice -Title "Create git worktree for this ticket?" -Options @("yes", "no") -DefaultIndex 0) -eq "yes"
 $sourceType = Prompt-Choice -Title "Source type" -Options (Get-SourceChoices) -DefaultIndex 0
 if ($sourceType -eq "custom") {
     $sourceType = Prompt-RequiredText -Title "Custom source type"
@@ -486,6 +518,10 @@ if ($workflowMode -eq "ship" -and $commitMode -eq "no-commit") {
     }
 }
 
+if ($useWorktree) {
+    $RepoPath = Ensure-Worktree -RepoPath $RepoPath -Ticket $Ticket
+}
+
 if ($createSpec) {
     Ensure-SpecScaffold -RepoPath $RepoPath -Ticket $Ticket
 }
@@ -509,6 +545,7 @@ $intake = [ordered]@{
     use_grill_me = $(if ($useGrillMe) { "yes" } else { "no" })
     commit_mode = $commitMode
     create_spec_scaffold = $(if ($createSpec) { "yes" } else { "no" })
+    use_worktree = $(if ($useWorktree) { "yes" } else { "no" })
     source_type = $sourceType
     source_link = $sourceLink
     priority = $priority

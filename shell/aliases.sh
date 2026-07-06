@@ -12,6 +12,28 @@ alias ccc='claude --continue'                  # continue (skip permission promp
 alias prs='gh pr list --author "@me"'
 alias mine='gh repo list "$(gh api user --jq .login)" --limit 100 --json name,isPrivate,pushedAt --jq "sort_by(.pushedAt) | reverse"'
 
+# --- Git worktree per ticket (see workflow.md "Workspace isolation") ---
+# wt <ticket>: create ../<repo>-<ticket> on branch <ticket>, cd into it
+wt() {
+  if [ -z "$1" ]; then echo "usage: wt <ticket>"; return 1; fi
+  local repo dir
+  repo=$(basename "$(git rev-parse --show-toplevel)") || return 1
+  dir="../${repo}-${1//\//-}"
+  git worktree add "$dir" -b "$1" || git worktree add "$dir" "$1" || return 1
+  cd "$dir" || return 1
+  echo "Worktree ready. Verify the test baseline is GREEN before building."
+}
+
+# wtrm <ticket>: remove the ticket's worktree (run from the main checkout; branch stays)
+wtrm() {
+  if [ -z "$1" ]; then echo "usage: wtrm <ticket>"; return 1; fi
+  local repo
+  repo=$(basename "$(git rev-parse --show-toplevel)") || return 1
+  git worktree remove "../${repo}-${1//\//-}"
+}
+
+alias wtls='git worktree list'
+
 # --- Quick git AI prep ---
 # Run before asking AI to write a commit message
 alias gd='git diff --staged'
