@@ -12,8 +12,17 @@ Tool-specific configs (`~/.claude/`, `~/.codex/`) hold tool-specific glue.
 Read in this order:
 
 1. [`PHILOSOPHY.md`](PHILOSOPHY.md) — the six principles behind everything else (evidence over memory, acceptance criteria first, never round up, capture lessons, don't pad).
-2. [`workflow.md`](workflow.md) — the canonical 6-stage workflow (Define → Plan → Build → Verify → Review → Ship), the two-tier doc discipline, parallel-agent patterns, and model assignment per stage.
+2. [`workflow.md`](workflow.md) — the canonical 6-stage workflow (Define → Plan → Build → Verify → Review → Ship), per-ticket worktree isolation, the two-tier doc discipline, risk-tiered review, parallel-agent patterns, and model assignment per stage.
 3. `templates/` — grab what the workflow tells you to grab.
+
+The index hierarchy, from widest zoom to narrowest — each level answers one question:
+
+| File | Question it answers | For |
+|---|---|---|
+| `system-map.md` | Where does everything live, what talks to what? | agents (context cache) |
+| `portfolio.md` | What is every project doing, what's next? | humans (status) |
+| `<repo>/spec-map.md` | What spec areas exist in this repo? | both |
+| `.spec/<ticket>/ai-development-map.md` | What do I read to pick up this ticket? | agents (handoff) |
 
 ## Layout
 
@@ -117,6 +126,11 @@ Per new project: copy `templates/AGENTS.md.template` → `AGENTS.md`,
 Per new ticket: run `scripts/start-task.ps1` (or copy `templates/spec.md` and
 `templates/tasks.md` into `.spec/<ticket>/` by hand).
 
+One-time, once your repos are cloned: run the `prompts/system-map-scan.md` procedure to
+build `~/.ai-workflow/system-map.md` (agents read it instead of re-exploring every repo
+each session — close-the-loop keeps it patched), and `prompts/portfolio-scan.md` for
+`portfolio.md` (refresh monthly or when deciding what to work on).
+
 ## Where new content goes
 
 | You learned / built | Put it in |
@@ -125,6 +139,8 @@ Per new ticket: run `scripts/start-task.ps1` (or copy `templates/spec.md` and
 | A language/library trap AI keeps hitting | `pitfalls/<lang>.md` |
 | A repo-specific gotcha | that repo's `AGENTS.md`, not here |
 | A ticket-specific workaround | that ticket's `.spec/<ticket>/ai-development-map.md` |
+| A new/changed entry point, endpoint, event, or cross-repo edge | patch `system-map.md` in the same PR (close-the-loop step 4) |
+| A project changed status (paused, archived, new) | rerun `prompts/portfolio-scan.md` |
 | A new doc/file every project needs | `templates/` |
 | A Claude Code skill or subagent | `claude-code/plugin/skills/` or `agents/` — bump `plugin.json` version; mirrored skills carry a `Canonical source` header, keep both sides in sync |
 | A process change | `workflow.md` |
