@@ -241,16 +241,14 @@ Human reads all three, decides what to accept.
 | Review  | Opus 4.8              | gpt-5.4 + high reasoning   |
 | Ship    | Haiku 4.5             | gpt-5.4-mini + flex tier   |
 
-Opus 4.8 is the workhorse ($5/$25 per MTok — half of Fable 5's $10/$50, and Anthropic's
-own recommended default). Escalate to Fable 5 only where its 2× price buys real judgment:
-
-- ADR-level architecture decisions, and Define/Plan on the hardest long-horizon tickets
-- Judge / second opinion in the high-risk 3-lens review panel
-
-Fable 5 caveats: hard-task turns can run minutes (plan timeouts/streaming around it),
-it requires 30-day data retention, and its cyber safety classifiers can false-positive on
-legitimate security-review work — keep the security lens on Opus 4.8. Revisit this table
-whenever a model family ships.
+The latest Opus is the default for ALL judgment-heavy stages — "Opus 4.8" above means
+"newest Opus available" ($5/$25 per MTok, Anthropic's own recommended default, SOTA on
+long-horizon agentic work). Fable 5 ($10/$50) is a separately paid tier — do NOT assume
+it's available. Only if the budget covers it, consider it for ADR-level architecture
+decisions or as the judge in a high-risk review panel; even then, keep the security lens
+on Opus (Fable's cyber classifiers can false-positive on legitimate security review),
+plan for minutes-long turns, and note it requires 30-day data retention. Revisit this
+table whenever a model family ships.
 
 ## What humans always own
 
