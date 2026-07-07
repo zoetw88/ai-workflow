@@ -73,8 +73,7 @@ The index hierarchy, from widest zoom to narrowest — each level answers one qu
 │       ├── skills/              grill-me, six-stage-workflow, verify-done,
 │       │                        go-pitfalls, python-pitfalls,
 │       │                        build-system-map, portfolio-scan
-│       ├── agents/              planner (Define/Plan), builder (Build), reviewer (Review)
-│       └── evals/               Regression cases per skill + baseline scores
+│       └── agents/              planner (Define/Plan), builder (Build), reviewer (Review)
 │
 ├── scripts/                     Automation (PowerShell, cross-platform via pwsh)
 │   ├── start-task.ps1           Bootstrap a ticket: .spec/<ticket>/ scaffolding
