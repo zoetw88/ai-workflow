@@ -2,6 +2,8 @@
 
 The single source of truth shared between Claude Code, Codex, and any future agent tool.
 
+Built around one principle: **AI engineering should survive contact with backend reality** — explicit scope, acceptance criteria, evidence, review, and durable handoffs.
+
 ## Why this exists
 
 Tool-specific configs (`~/.claude/`, `~/.codex/`) hold tool-specific glue.
@@ -157,3 +159,7 @@ each session — close-the-loop keeps it patched), and `prompts/portfolio-scan.m
 
 This directory is a git repo. Commit and push every change — when you change
 machines, clone it and you're back.
+
+---
+
+More from [Zoe](https://zoe-site-ten.vercel.app): practical notes on AI products, backend systems, and engineering judgment without the hype.
