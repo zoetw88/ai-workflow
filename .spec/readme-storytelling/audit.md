@@ -22,3 +22,30 @@ Date: 2026-07-15
 Use README as the human entry point, not as a duplicate filesystem index.
 Create focused Gotchas and Glossary entry documents that route readers to the
 canonical files where details already live.
+
+## Extension — cross-agent use and model routing
+
+Date: 2026-07-15
+
+### Evidence
+
+- The branch README calls the repository tool-agnostic, but its only turnkey
+  install is still the Claude Code plugin; the generic path is two sentences.
+- GitHub's repository description still leads with `CLAUDE.md templates`.
+- `workflow.md` describes parallel work in Claude-specific `Agent` / `Explore`
+  terms even though Codex and other orchestrators expose equivalent roles with
+  different names and scheduling APIs.
+- The canonical model table hard-codes provider versions and prices. Anthropic's
+  current catalog still matches its Claude rows, but OpenAI's current catalog
+  has already moved beyond the GPT-5.4 names in the table.
+- Provider documentation agrees on capability tiers: frontier models for
+  complex reasoning, balanced models for general work, and fast models for
+  cost-sensitive bounded work. The exact product names are the unstable part.
+
+### Decision
+
+Keep one evidence-gated six-stage workflow. Route work by capability and risk:
+fast models get bounded deterministic tasks, general coding models get atomic
+implementation slices, and the strongest available model handles ambiguity,
+architecture, conflict, and high-risk review. Stronger models receive more
+judgment-heavy work, never weaker verification requirements.
