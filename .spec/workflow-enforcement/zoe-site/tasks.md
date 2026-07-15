@@ -22,7 +22,7 @@ Repository: zoe-site
 - [x] task-4: Wire bilingual synchronization into the existing site PR check
   - Files: coordinated `zoe-site/.github/workflows/build.yml`
   - Test / validation: read-only workflow runs article tests, Astro check, build
-  - Verify: inspect the hosted `Build check` before merge
+  - Verify: inspect the GitHub Actions `Build check` before merge
 
 ## Acceptance
 

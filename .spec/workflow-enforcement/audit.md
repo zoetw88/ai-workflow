@@ -37,9 +37,10 @@
 
 ## Evidence boundary
 
-- GitHub-hosted evidence does not exist until the PR is opened. The PR checks
-  are required evidence before merge in both repositories, but branch-protection
-  configuration is out of scope.
+- GitHub-hosted evidence begins after the PRs open. `ai-workflow` uses a hosted
+  runner; private `zoe-site` requires an ephemeral Windows self-hosted runner
+  because paid hosted minutes are unavailable. Both checks remain required,
+  while branch-protection configuration is out of scope.
 - The article was built and inspected locally; this change does not deploy or
   prove the live `zoe-builds.com` routes.
 - `npm ci` reported six existing dependency audit findings in `zoe-site`
