@@ -9,8 +9,8 @@ description: Use for non-trivial features, bug fixes, or refactors. Enforces Def
 # The six stages
 
 1. **Define** — Turn the request into accepted scope, constraints, non-goals,
-   and criteria in `.spec/<ticket>/current.md`. Ask only questions that
-   materially change the result or authorization boundary.
+   and criteria in `.spec/<ticket>/current.md`. Each criterion should name an
+   Observable result, Environment, and exact Verify command or manual step.
 2. **Plan** — Write dependency-ordered, independently verifiable slices in
    `.spec/<ticket>/tasks.md`, with paths and exact checks.
 3. **Build** — Implement one accepted slice on a feature branch. Use test-first
@@ -44,9 +44,15 @@ a working directory.
 - **Historical tier:** append-only `audit.md` and `adr-*.md`. Supersede an ADR
   with a new ADR; do not rewrite its body.
 
-Before Plan, read current truth and settled decisions. Before a PR, update the
-living documents the change actually touched. The close-loop guard is a narrow
-drift signal; it cannot prove that the documents are complete or correct.
+Before Plan, read current truth and settled decisions. **WIP mode** checks the
+available ticket pair, required headings, and placeholders while allowing open
+checkboxes. **Ship mode** treats every change outside the living tier, including canonical Markdown,
+as substantive and requires the same ticket's changed
+`current.md` and `tasks.md`, completed checklists, and personal-project
+`devlog.md` plus `todo.md`; CI pins project type so a PR cannot disable that
+policy. Missing Observable, Environment, or Verify fields
+emit warnings only. These are structural evidence checks; they cannot prove the
+documents are accurate or the private system map is current.
 
 ## Review depth scales with risk
 
