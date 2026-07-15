@@ -158,12 +158,6 @@ Every durable rule should have one home:
 This is how the workflow improves: not from collecting more instructions, but
 from turning real failures into rules at the correct boundary.
 
-## Built with this workflow
-
-- [job-tracker-skill](https://github.com/zoetw88/job-tracker-skill) — a
-  Claude Code adapter for funnel metrics, interview logs, follow-up cadence,
-  and rejection-stage analysis, built with the same tool-agnostic process.
-
 ## The longer story
 
 Read [AI Is a Coworker Who Overstates Its Progress: How I Build With It](https://zoe-builds.com/en/articles/my-ai-workflow/)
