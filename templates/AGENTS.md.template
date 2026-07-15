@@ -6,7 +6,7 @@
 > repo-specific rules here.
 
 **Project type: personal | team** ← set one. Drives the close-the-loop rules below:
-- `personal` → `devlog.md` + `todo.md` are MANDATORY every session.
+- `personal` → `devlog.md` + `todo.md` are required for non-trivial tracked tasks.
 - `team` → they follow the team's convention; skip until the team has adopted them.
 
 ## Project context
@@ -20,7 +20,7 @@
 
 ## Workflow expectation
 
-For non-trivial changes, follow the 6-stage workflow:
+For non-trivial changes, follow the 6-stage workflow with proportional controls:
 Define → Plan → Build → Verify → Review → Ship.
 
 Reference the canonical version at `~/.ai-workflow/workflow.md`.
@@ -47,15 +47,16 @@ Docs are two-tier. Never overwrite history; keep the living tier aligned with re
 
 Behavior-affecting change → update `current.md` (it IS the spec). Implementation-only decision → ADR only.
 
-## Global sources
+## Shared sources
 
 Align with:
 
-- `~/.codex/AGENTS.md`
 - `~/.ai-workflow/workflow.md`
 - `~/.ai-workflow/pitfalls/<language>.md`
 - `~/.ai-workflow/prompts/review-checklist.md`
-- `~/.codex/config.toml`
+
+Tool-specific global instructions may add adapter details, but they must not
+duplicate or silently override this repository's rules.
 
 ## Task-local files
 

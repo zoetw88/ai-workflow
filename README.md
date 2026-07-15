@@ -1,4 +1,6 @@
-# AI Workflow — evidence-first engineering with coding agents
+# AI Workflow
+
+**Evidence-first engineering with coding agents.**
 
 > **AI is a capable coworker who overstates its progress. Ask for evidence.**
 
@@ -12,10 +14,65 @@ it as a system:
 
 `messy request → explicit contract → isolated work → evidence → independent review → durable handoff`
 
-This repository is that system: portable Markdown contracts, prompts,
-templates, and checks that any coding agent can follow. Claude Code and Codex
-have convenient adapters here, but neither is required. Tool-specific
-configuration is glue; the rules that matter live in files.
+This repository contains the portable Markdown contracts, prompts, templates,
+and checks behind that system. Any coding agent can use the canonical files;
+tool-specific configuration is optional glue.
+
+## Quick start
+
+The minimum setup is clone, merge one instruction file, and give the agent a
+clear starting command.
+
+1. Clone the shared workflow.
+
+   ```bash
+   git clone https://github.com/zoetw88/ai-workflow.git ~/.ai-workflow
+   ```
+
+2. Add the project-instruction template without overwriting local rules.
+
+   If `AGENTS.md` already exists, merge the relevant sections from
+   [`templates/AGENTS.md.template`](templates/AGENTS.md.template) into it. If it
+   does not exist, use the guarded copy command for your shell:
+
+   ```bash
+   # macOS / Linux
+   test -e ./AGENTS.md && echo "AGENTS.md exists; merge it manually" || \
+     cp ~/.ai-workflow/templates/AGENTS.md.template ./AGENTS.md
+   ```
+
+   ```powershell
+   # PowerShell
+   if (Test-Path ./AGENTS.md) {
+     Write-Host "AGENTS.md exists; merge it manually"
+   } else {
+     Copy-Item "$HOME/.ai-workflow/templates/AGENTS.md.template" ./AGENTS.md
+   }
+   ```
+
+3. Give your coding agent one instruction:
+
+```text
+Read AGENTS.md and ~/.ai-workflow/workflow.md, then follow the six-stage
+workflow for this task. Do not claim completion without verification evidence.
+```
+
+Optional shell helpers live in [`shell/aliases.sh`](shell/aliases.sh).
+
+<details>
+<summary>Optional task bootstrap</summary>
+
+For a guided intake that can create ticket files and an isolated workspace:
+
+```powershell
+# Run inside the target repository:
+pwsh ~/.ai-workflow/scripts/start-task.ps1
+
+# Or name the repository explicitly:
+pwsh ~/.ai-workflow/scripts/start-task.ps1 -RepoPath C:\path\to\repo
+```
+
+</details>
 
 ## The operating loop
 
@@ -23,9 +80,9 @@ configuration is glue; the rules that matter live in files.
 |---|---|---|
 | **Define** | What are we actually solving? | scope, constraints, acceptance criteria |
 | **Plan** | What are the smallest verifiable steps? | atomic task list |
-| **Build** | Can the change be made in isolation? | focused diff in a dedicated worktree |
-| **Verify** | Does it work? | commands, tests, output, file references |
-| **Review** | Is it good and does it match the spec? | independent findings and decisions |
+| **Build** | Can the change be made safely and in scope? | focused diff on an isolated branch or worktree |
+| **Verify** | Does it work in the environment tested? | commands, tests, output, file references |
+| **Review** | Is it right, safe, and maintainable? | independent findings and decisions |
 | **Ship** | Can the next person recover the truth? | commit, PR, updated handoff docs |
 
 Two distinctions carry most of the weight:
@@ -36,127 +93,87 @@ Two distinctions carry most of the weight:
 
 The complete process lives in [`workflow.md`](workflow.md).
 
-## One workflow, different model budgets
+## Choose the model; keep the gates
 
-There is no separate "smart model workflow" and "cheap model workflow." The
-same acceptance criteria, verification, review, and evidence gates apply to
-both. What changes is how much judgment and autonomy the model receives.
+There is no separate smart-model and cheap-model workflow. Every model keeps
+the same acceptance criteria, verification, review, and evidence gates.
 
-| Capability profile | Good fit | Operating boundary |
-|---|---|---|
-| **Fast / low-cost** | search, classification, formatting, deterministic checks | exact files, narrow output, read-only by default |
-| **General coding** | a well-specified implementation slice, test repair, routine refactors | one atomic task, focused diff, required test command |
-| **Strongest reasoning** | ambiguous requirements, architecture, conflicting evidence, high-risk review | broader context and judgment, but no skipped gates |
+- **Fast / low-cost** — search, classification, formatting, and deterministic
+  checks. Give exact files, narrow output, and read-only access by default.
+- **General coding** — the default for accepted, well-bounded implementation
+  and review work. Give one slice, one allowed change surface, and exact checks.
+- **Strongest reasoning** — escalate for ambiguity, architecture, conflicting
+  evidence, high-risk changes, or repeated failure on the same bounded task.
 
-Use a weaker model by making the task smaller and the contract more explicit,
-not by lowering the definition of done. Escalate when risk or uncertainty
-increases, not merely because the workflow reached a particular stage. The
-full routing and escalation policy lives in [`workflow.md`](workflow.md).
+Use a weaker model by shrinking the task and making the contract explicit, not
+by lowering the definition of done. See the full routing policy in
+[`workflow.md`](workflow.md#model-routing-one-workflow-different-autonomy).
 
-## Start with the problem you have
+## Find what you need
 
-| If you need to… | Start here |
-|---|---|
-| understand the principles behind the workflow | [`PHILOSOPHY.md`](PHILOSOPHY.md) |
-| run the full Define → Ship process | [`workflow.md`](workflow.md) |
-| avoid the mistakes that shaped these rules | [`GOTCHAS.md`](GOTCHAS.md) |
-| decode terms such as evidence block, living tier, or system map | [`GLOSSARY.md`](GLOSSARY.md) |
-| clarify a vague request | [`prompts/grill-me.md`](prompts/grill-me.md) |
-| prove a task is actually complete | [`prompts/verify-done.md`](prompts/verify-done.md) |
-| review AI-generated code adversarially | [`prompts/review-checklist.md`](prompts/review-checklist.md) |
-| start a ticket with the right files | [`scripts/start-task.ps1`](scripts/start-task.ps1) |
-| avoid Go, Python, or production-LLM traps | [`pitfalls/`](pitfalls) |
+- **Understand the principles** — [`PHILOSOPHY.md`](PHILOSOPHY.md)
+- **Run Define → Ship** — [`workflow.md`](workflow.md)
+- **Recognize recurring failure patterns** — [`GOTCHAS.md`](GOTCHAS.md)
+- **Decode workflow terminology** — [`GLOSSARY.md`](GLOSSARY.md)
+- **Manage ticket and cross-project context** — [`context-management.md`](context-management.md)
+- **Clarify a vague request** — [`prompts/grill-me.md`](prompts/grill-me.md)
+- **Prove completion** — [`prompts/verify-done.md`](prompts/verify-done.md)
+- **Review adversarially** — [`prompts/review-checklist.md`](prompts/review-checklist.md)
+- **Avoid technical traps** — [`pitfalls/`](pitfalls)
 
-## What lives here
+<details>
+<summary>Repository map</summary>
 
-| Area | Job |
-|---|---|
-| [`prompts/`](prompts) | reusable actions: clarify, review, debug, audit, verify |
-| [`pitfalls/`](pitfalls) | pre-write checklists for mistakes AI repeats |
-| [`templates/`](templates) | project rules, specs, tasks, ADRs, maps, and hooks |
-| [`claude-code/plugin/`](claude-code/plugin) | optional Claude Code adapter: skills and planner/builder/reviewer agents |
-| [`scripts/`](scripts) | task bootstrap, spec-map generation, close-the-loop guard |
-| [`shell/aliases.sh`](shell/aliases.sh) | small worktree and context helpers |
+- [`prompts/`](prompts) — reusable clarification, debugging, review, audit, and
+  verification actions.
+- [`pitfalls/`](pitfalls) — pre-write checklists for mistakes agents repeat.
+- [`templates/`](templates) — project rules, specs, tasks, ADRs, maps, and hooks.
+- [`scripts/`](scripts) — task bootstrap, spec-map generation, and close-loop guard.
+- [`claude-code/plugin/`](claude-code/plugin) — optional Claude Code adapter.
 
-The canonical documents stay tool-agnostic. Adapter copies under
-`claude-code/plugin/skills/` carry a `Canonical source` header so drift is
-visible and reviewable.
+Canonical documents stay tool-agnostic. Adapter copies that declare a
+`Canonical source` must be updated with their source so drift stays visible.
 
-## Use it with any coding agent
+</details>
 
-Clone the shared layer; that is enough to use the canonical documents:
+## Tool adapters
 
-```bash
-git clone https://github.com/zoetw88/ai-workflow.git ~/.ai-workflow
-```
+**Codex** reads project `AGENTS.md` files directly. Other coding agents should
+use their project-instruction mechanism to read the same file. If a tool cannot
+import it, keep a thin shim that points to `AGENTS.md`; do not duplicate rules.
 
-Optional shell helpers:
+Parallel agents and automatic model routing are optional optimizations, not
+prerequisites for the six-stage workflow.
 
-```bash
-source ~/.ai-workflow/shell/aliases.sh
-```
-
-For a new project, copy the portable source of truth:
-
-```text
-templates/AGENTS.md.template  → AGENTS.md
-```
-
-Then configure your coding agent to read `AGENTS.md` and the canonical
-`workflow.md`. For a new ticket:
-
-```powershell
-pwsh ~/.ai-workflow/scripts/start-task.ps1
-```
-
-### Codex
-
-Codex reads project `AGENTS.md` files directly. Keep repo-specific context in
-that file and link back to this repository for the global process.
-
-### Claude Code
+<details>
+<summary>Claude Code plugin (optional)</summary>
 
 Use [`templates/CLAUDE.md.template`](templates/CLAUDE.md.template) as a thin
-shim that imports `AGENTS.md`. The plugin is optional; it packages the same
-workflow as native skills and subagents.
-
-Inside Claude Code:
+shim that imports `AGENTS.md`, or install the packaged skills and agents:
 
 ```text
 /plugin marketplace add zoetw88/ai-workflow
 /plugin install ai-workflow@zoetw88
 ```
 
-This installs the workflow, clarification, verification, pitfall, system-map,
-and portfolio skills plus the planner, builder, and reviewer agents.
-
 For global rules, start from
 [`claude-code/CLAUDE.md.example`](claude-code/CLAUDE.md.example).
 
-### Other coding agents
+</details>
 
-Point the tool's project-instruction mechanism at `AGENTS.md`. If it cannot
-import another file, keep a thin tool-specific shim that tells the agent to
-read `AGENTS.md`; do not maintain two copies of the rules. Parallel-agent and
-automatic model routing features are optional optimizations, not prerequisites
-for the six-stage workflow.
+## Keep lessons durable
 
-## When something new is learned
+Every reusable lesson should have one home:
 
-Every durable rule should have one home:
+- reusable prompt pattern → `prompts/`
+- language or library trap → `pitfalls/<language>.md`
+- repo-specific rule → that repository's `AGENTS.md`
+- ticket-specific workaround → `.spec/<ticket>/ai-development-map.md`
+- process change → `workflow.md`
+- principle change → `PHILOSOPHY.md` — rarely
 
-| What changed | Put it here |
-|---|---|
-| a reusable prompt pattern | `prompts/` |
-| a language or library trap AI repeats | `pitfalls/<language>.md` |
-| a repo-specific gotcha | that repo's `AGENTS.md` |
-| a ticket-specific workaround | `.spec/<ticket>/ai-development-map.md` |
-| a process change | `workflow.md` |
-| a principle change | `PHILOSOPHY.md` — rarely |
-| a public entry point or integration edge | patch `system-map.md` in the same PR |
-
-This is how the workflow improves: not from collecting more instructions, but
-from turning real failures into rules at the correct boundary.
+This is how the workflow improves: turn real failures into rules at the correct
+boundary instead of collecting more instructions everywhere.
 
 ## The longer story
 

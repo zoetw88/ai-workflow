@@ -33,13 +33,14 @@ Summarize the current parent-ticket or task scope:
 
 - 
 
-## TDD checkpoints
+## Verification checkpoints
 
-1. Confirm the narrow test exists.
-2. Run the narrow test and capture the failure mode.
-3. Implement the smallest production change.
-4. Re-run the narrow test.
-5. Run broader verification for the touched area.
+1. For new or fixed behavior, confirm a narrow test exists and capture the
+   correct failure before implementation when a test harness is available.
+2. For docs, configuration, or generated data, name the relevant validator.
+3. Implement the smallest accepted change.
+4. Re-run the narrow test or validator.
+5. Run broader verification proportional to the touched area and risk.
 
 ## Verification commands
 

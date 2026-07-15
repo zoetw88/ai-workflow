@@ -1,6 +1,6 @@
 ---
 name: six-stage-workflow
-description: Use when starting any non-trivial feature, bugfix, or refactor. Enforces the Define → Plan → Build → Verify → Review → Ship discipline with per-ticket worktrees, TDD, evidence-based verification, and risk-tiered review.
+description: Use for non-trivial features, bug fixes, or refactors. Enforces Define → Plan → Build → Verify → Review → Ship with proportional isolation, test-first behavior changes, evidence, risk-based review, and approval gates.
 ---
 
 <!-- Canonical source: ~/.ai-workflow/workflow.md — if that file exists on this machine,
@@ -8,76 +8,90 @@ description: Use when starting any non-trivial feature, bugfix, or refactor. Enf
 
 # The six stages
 
-1. **Define** — Grill the user (see the `grill-me` skill). Produce `.spec/<ticket>/current.md`.
-2. **Plan** — Break the spec into atomic tasks in `.spec/<ticket>/tasks.md`. Each task:
-   2–5 minutes of focused work, ≤ 1 commit, with exact file paths and a `Verify:` command.
-3. **Build** — One task at a time, in an isolated worktree. TDD. One commit per task.
-4. **Verify** — Run tests. Tests are proof. Before claiming done, produce the evidence
-   block from the `verify-done` skill.
-5. **Review** — Independent reviewer with FRESH context (spawn the `reviewer` agent).
-   Check spec conformance + AI smells.
-6. **Ship** — Commit message, PR description, ADR if architectural. Close the loop first
-   (see below).
+1. **Define** — Turn the request into accepted scope, constraints, non-goals,
+   and criteria in `.spec/<ticket>/current.md`. Ask only questions that
+   materially change the result or authorization boundary.
+2. **Plan** — Write dependency-ordered, independently verifiable slices in
+   `.spec/<ticket>/tasks.md`, with paths and exact checks.
+3. **Build** — Implement one accepted slice on a feature branch. Use test-first
+   development for behavior when a test harness exists; use the relevant
+   validator for docs, configuration, and generated data.
+4. **Verify** — Run checks and report exact commands, output, and environment.
+   Local evidence is not production evidence.
+5. **Review** — Use fresh context for spec conformance and the risks the diff
+   actually introduces. Fix and reverify findings or record their acceptance.
+6. **Ship** — Close the loop, prepare a cohesive commit and PR, and state what
+   was not verified. Ship does not grant merge or deployment authority.
 
-**Verify ≠ Review.** Verify answers "does it work?"; review answers "is it good?".
-Never collapse them.
+**Verify ≠ Review.** Verify answers "does it work?"; review answers "is it the
+right, safe, maintainable thing?" Never collapse them.
 
-## Workspace isolation
+## Proportional isolation
 
-Build happens on a dedicated branch in a dedicated worktree — never on the main checkout:
+Every write belongs on a feature branch. Use a dedicated worktree for
+non-trivial work, parallel writers, or when the shared checkout must stay
+stable. A clean feature branch is enough for a bounded documentation or
+low-risk single-file change.
 
-```bash
-git worktree add ../<repo>-<ticket> -b <ticket>
-```
+Before editing, inspect `git status`, preserve unrelated changes, and run the
+narrow relevant baseline for a behavior change. Parallel writers never share
+a working directory.
 
-Run the test suite in the fresh worktree BEFORE writing anything. If the baseline is
-already red, report it as a blocker — do not "fix it along the way". Remove the worktree
-at Ship, after the PR is opened.
+## Context and close-loop discipline
+
+- **Living tier:** `.spec/<ticket>/current.md`, `tasks.md`, and, when the
+  project's convention requires them, `devlog.md` and `todo.md`.
+- **Historical tier:** append-only `audit.md` and `adr-*.md`. Supersede an ADR
+  with a new ADR; do not rewrite its body.
+
+Before Plan, read current truth and settled decisions. Before a PR, update the
+living documents the change actually touched. The close-loop guard is a narrow
+drift signal; it cannot prove that the documents are complete or correct.
 
 ## Review depth scales with risk
 
-Default: ONE reviewer. Escalate to a 3-lens panel (spec conformance + security + performance,
-three parallel agents) only when the diff touches:
+Default to one fresh reviewer. Add only relevant specialist lenses:
 
-- auth / permissions / session handling
-- money, transactions, or data migrations
-- concurrency or caching
-- public API contracts
+- security for auth, trust boundaries, secrets, crypto, or untrusted input
+- data integrity for transactions, migrations, retries, and idempotency
+- performance for queries, hot paths, capacity, and material cost
+- compatibility for public APIs, events, clients, and rollout behavior
+- operability for production availability and recovery paths
 
-These categories also require a passing integration test before "done".
-
-## Context discipline (two-tier docs)
-
-- **Living tier** — must always reflect current state: `.spec/<ticket>/current.md`,
-  `tasks.md`, project-level `devlog.md` + `todo.md`.
-- **Historical tier** — append-only: `audit.md`, `adr-*.md`. To overturn a decision,
-  write a NEW ADR marked `Supersedes ADR-NNNN` — never edit the old one's body.
-
-Before proposing an approach (Define/Plan): read `current.md` + every settled ADR for the
-ticket, and state which docs you consulted. Conflict with a recorded decision → STOP and
-flag it; the user decides.
-
-Before opening a PR (close the loop): update every living-tier doc the change touched,
-append a newest-on-top `devlog.md` entry, refresh `todo.md`, and commit the doc updates
-in the SAME PR.
+Reviewers report before they fix. The orchestrator or authorized builder owns
+changes; affected verification runs again afterward.
 
 ## Model routing: one workflow, different autonomy
 
-Every model follows the same six stages and evidence gates. Change the task
-shape, not the definition of done:
+Use a general coding model by default for bounded Define, Plan, Build, and
+Review work. Prefer deterministic tools for Verify and fast models for narrow
+classification, search, or evidence formatting.
 
-- **Fast / lower-cost:** exact files, one bounded question, structured output,
-  and read-only permissions by default.
-- **General coding:** one accepted implementation slice, a constrained change
-  surface, and an exact verification command.
-- **Strongest reasoning:** ambiguous requirements, architecture, conflicting
-  evidence, and high-risk review — with the same tests and independent review.
+Escalate to the strongest reasoning tier when requirements remain ambiguous,
+scope crosses boundaries, risk is high, evidence conflicts, or the current tier
+fails twice on the same bounded task. If a preferred model is unavailable, use
+the next capable tier without waiving any gate.
 
-Escalate when risk or uncertainty grows, when evidence conflicts, or after two
-failures on the same bounded task. Do not hard-code provider model versions in
-the workflow; choose the current model matching the required capability.
+## Delegation contract
+
+Delegate only when the work is independent and the benefit exceeds context
+reconstruction and integration cost. Every worker brief states its role,
+allowed scope, ownership, done criteria, evidence format, budget or stop
+condition, and permissions. A fresh verifier tries to refute non-trivial claims
+and does not silently become the fixer.
+
+## Approval gates
+
+Obtain explicit human authorization before merging a default or integration
+branch; applying migrations or destructive data changes; deploying or cutting
+over production; performing payment or production user-data writes; or sending
+external messages. Also stop before source writes when the user requested
+plan-first work or the plan introduces a material decision outside the original
+authorization. Approval is scoped to the named action and environment; record
+it in the ticket handoff or PR.
 
 ## What humans always own
 
-Architectural decisions, security-sensitive code, performance/cost trade-offs, production
-deployments, and the final accept/reject on review findings. AI proposes. Humans dispose.
+Humans make the final architecture and risk decisions, accept or reject review
+findings, authorize sensitive external state changes, and decide whether the
+available evidence is sufficient. AI proposes; humans dispose.

@@ -8,6 +8,9 @@ the push is rejected with a reminder.
 Scope rules:
 - Only enforces in repos that follow the discipline (a `.spec/` dir exists).
 - Doc-only pushes always pass.
+- Only `.spec/**/current.md`, `.spec/**/tasks.md`, `devlog.md`, and `todo.md`
+  count as living-tier evidence; historical audit/ADR files do not.
+- An unresolved comparison range fails visibly instead of silently passing.
 - Escape hatches: `git push --no-verify`, or `CLOSE_THE_LOOP=skip git push`.
 
 Wire-up (pre-commit framework, pre-push stage) — see pre-commit.template.yaml.
@@ -18,7 +21,8 @@ import subprocess
 import sys
 
 ZEROS = "0" * 40
-LIVING_BASENAMES = {"devlog.md", "todo.md"}
+PROJECT_LIVING_PATHS = {"devlog.md", "todo.md"}
+SPEC_LIVING_BASENAMES = {"current.md", "tasks.md"}
 
 
 def git(*args):
@@ -28,7 +32,7 @@ def git(*args):
 
 
 def resolve_range():
-    """Return (from_ref, to_ref) for the outgoing commits, or None to skip."""
+    """Return the outgoing comparison range, or None so the guard fails closed."""
     from_ref = os.environ.get("PRE_COMMIT_FROM_REF") or ""
     to_ref = os.environ.get("PRE_COMMIT_TO_REF") or "HEAD"
 
@@ -38,7 +42,7 @@ def resolve_range():
             base = git("merge-base", candidate, to_ref)
             if base.returncode == 0 and base.stdout.strip():
                 return base.stdout.strip(), to_ref
-        return None  # nothing to compare against — stay silent
+        return None  # caller reports the unresolved range and refuses the push
 
     return from_ref, to_ref
 
@@ -52,7 +56,11 @@ def changed_files(from_ref, to_ref):
 
 def is_living_doc(path):
     p = path.replace("\\", "/")
-    return p.startswith(".spec/") or p.rsplit("/", 1)[-1].lower() in LIVING_BASENAMES
+    basename = p.rsplit("/", 1)[-1].lower()
+    return (
+        (p.startswith(".spec/") and basename in SPEC_LIVING_BASENAMES)
+        or p.lower() in PROJECT_LIVING_PATHS
+    )
 
 
 def is_doc(path):
@@ -67,9 +75,21 @@ def main():
 
     resolved = resolve_range()
     if resolved is None:
-        return 0
+        sys.stderr.write(
+            "close-the-loop: unable to resolve the outgoing comparison range; "
+            "refusing to treat this push as verified.\n"
+            "Set PRE_COMMIT_FROM_REF/PRE_COMMIT_TO_REF or fetch origin/HEAD, "
+            "then retry. Intentional exception: CLOSE_THE_LOOP=skip git push\n"
+        )
+        return 1
     files = changed_files(*resolved)
-    if files is None or not files:
+    if files is None:
+        sys.stderr.write(
+            "close-the-loop: git diff failed for the outgoing comparison "
+            "range; refusing to pass silently.\n"
+        )
+        return 1
+    if not files:
         return 0
 
     code = [f for f in files if not is_doc(f)]
@@ -81,7 +101,7 @@ def main():
     sys.stderr.write(
         "close-the-loop: this push changes code but no living-tier doc.\n"
         "workflow.md requires updating, in the SAME PR:\n"
-        "  .spec/<ticket>/{current.md,tasks.md,ai-development-map.md}\n"
+        "  .spec/<ticket>/{current.md,tasks.md}\n"
         "  devlog.md (newest-on-top entry) and todo.md\n"
         f"Code files pushed without docs ({len(code)}): {', '.join(code[:5])}"
         f"{' …' if len(code) > 5 else ''}\n"
