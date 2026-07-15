@@ -61,6 +61,22 @@ Before opening a PR (close the loop): update every living-tier doc the change to
 append a newest-on-top `devlog.md` entry, refresh `todo.md`, and commit the doc updates
 in the SAME PR.
 
+## Model routing: one workflow, different autonomy
+
+Every model follows the same six stages and evidence gates. Change the task
+shape, not the definition of done:
+
+- **Fast / lower-cost:** exact files, one bounded question, structured output,
+  and read-only permissions by default.
+- **General coding:** one accepted implementation slice, a constrained change
+  surface, and an exact verification command.
+- **Strongest reasoning:** ambiguous requirements, architecture, conflicting
+  evidence, and high-risk review — with the same tests and independent review.
+
+Escalate when risk or uncertainty grows, when evidence conflicts, or after two
+failures on the same bounded task. Do not hard-code provider model versions in
+the workflow; choose the current model matching the required capability.
+
 ## What humans always own
 
 Architectural decisions, security-sensitive code, performance/cost trade-offs, production

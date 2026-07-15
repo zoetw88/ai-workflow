@@ -1,165 +1,174 @@
-# ~/.ai-workflow — tool-agnostic AI development layer
+# AI Workflow — evidence-first engineering with coding agents
 
-The single source of truth shared between Claude Code, Codex, and any future agent tool.
+> **AI is a capable coworker who overstates its progress. Ask for evidence.**
 
-Built around one principle: **AI engineering should survive contact with backend reality** — explicit scope, acceptance criteria, evidence, review, and durable handoffs.
+This started with more than 20,000 lines of AI-assisted code and one missing
+critical path: the Kafka integration the AI had already called "done."
 
-## Why this exists
+The files were there. The code looked clean. The system still did not work.
 
-Tool-specific configs (`~/.claude/`, `~/.codex/`) hold tool-specific glue.
-**Anything that should outlive a tool change lives here.**
+So I stopped treating AI development as a better prompt and started treating
+it as a system:
 
-## Start here
+`messy request → explicit contract → isolated work → evidence → independent review → durable handoff`
 
-Read in this order:
+This repository is that system: portable Markdown contracts, prompts,
+templates, and checks that any coding agent can follow. Claude Code and Codex
+have convenient adapters here, but neither is required. Tool-specific
+configuration is glue; the rules that matter live in files.
 
-1. [`PHILOSOPHY.md`](PHILOSOPHY.md) — the six principles behind everything else (evidence over memory, acceptance criteria first, never round up, capture lessons, don't pad).
-2. [`workflow.md`](workflow.md) — the canonical 6-stage workflow (Define → Plan → Build → Verify → Review → Ship), per-ticket worktree isolation, the two-tier doc discipline, risk-tiered review, parallel-agent patterns, and model assignment per stage.
-3. `templates/` — grab what the workflow tells you to grab.
+## The operating loop
 
-The index hierarchy, from widest zoom to narrowest — each level answers one question:
-
-| File | Question it answers | For |
+| Stage | The question | Evidence it leaves behind |
 |---|---|---|
-| `system-map.md` | Where does everything live, what talks to what? | agents (context cache) |
-| `portfolio.md` | What is every project doing, what's next? | humans (status) |
-| `<repo>/spec-map.md` | What spec areas exist in this repo? | both |
-| `.spec/<ticket>/ai-development-map.md` | What do I read to pick up this ticket? | agents (handoff) |
+| **Define** | What are we actually solving? | scope, constraints, acceptance criteria |
+| **Plan** | What are the smallest verifiable steps? | atomic task list |
+| **Build** | Can the change be made in isolation? | focused diff in a dedicated worktree |
+| **Verify** | Does it work? | commands, tests, output, file references |
+| **Review** | Is it good and does it match the spec? | independent findings and decisions |
+| **Ship** | Can the next person recover the truth? | commit, PR, updated handoff docs |
 
-## Layout
+Two distinctions carry most of the weight:
 
-```
-~/.ai-workflow/
-├── README.md                    (this file)
-├── PHILOSOPHY.md                Six principles for working with AI agents
-├── workflow.md                  The canonical 6-stage workflow + context discipline
-│
-├── prompts/                     Reusable prompt fragments
-│   ├── grill-me.md              Interactive requirement clarification (Define stage)
-│   ├── code-review.md           Adversarial review of freshly written code
-│   ├── review-checklist.md      Priority-ordered review checklist (Review stage)
-│   ├── refactor.md              Behavior-preserving cleanup
-│   ├── debug-ai-bug.md          Locating bugs in AI-generated code
-│   ├── parallel-audit.md        Fan-out read-only audits across repos/modules
-│   ├── portfolio-scan.md        gh-CLI scan of ALL repos → regenerates portfolio.md
-│   ├── system-map-scan.md       One-time parallel scan → system-map.md, then patch-only
-│   └── verify-done.md           Evidence block required before claiming "done" (Verify stage)
-│
-├── pitfalls/                    Language/library traps AI repeatedly misses
-│   ├── go.md                    Pre-write checklist for Go (context, goroutines, …)
-│   ├── python.md                Python/Django traps (mutable defaults, …)
-│   ├── llm.md                   LLM-app traps: prompt injection, secrets, evals, cost
-│   └── (add more as you encounter them)
-│
-├── templates/                   Drop-in files for projects and tickets
-│   ├── spec.md                  .spec/<ticket>/current.md starter   (living tier)
-│   ├── tasks.md                 .spec/<ticket>/tasks.md starter     (living tier)
-│   ├── adr.md                   Architecture Decision Record        (historical tier)
-│   ├── devlog.md                Project-level rolling devlog        (historical tier)
-│   ├── todo.md                  Project-level rolling work queue    (living tier)
-│   ├── ai-development-map.md    Per-ticket handoff read-order for agents
-│   ├── portfolio.md             Cross-project STATUS: what every repo is doing (living tier)
-│   ├── system-map.md            Cross-repo STRUCTURE: agent context cache — entry points,
-│   │                            public surfaces, integration edges (living tier)
-│   ├── AGENTS.md.template       Project agent rules — the single source of truth
-│   ├── CLAUDE.md.template       Thin shim that imports AGENTS.md (@AGENTS.md)
-│   └── pre-commit.template.yaml Pre-commit hooks: tests, lint, secret scan
-│
-├── .claude-plugin/
-│   └── marketplace.json         Makes this repo a Claude Code plugin marketplace
-│
-├── claude-code/                 Claude Code-specific glue (references the layers above)
-│   ├── CLAUDE.md.example        Global rules — drop into ~/.claude/CLAUDE.md
-│   └── plugin/                  Installable plugin (see Setup below)
-│       ├── .claude-plugin/plugin.json
-│       ├── skills/              grill-me, six-stage-workflow, verify-done,
-│       │                        go-pitfalls, python-pitfalls,
-│       │                        build-system-map, portfolio-scan
-│       └── agents/              planner (Define/Plan), builder (Build), reviewer (Review)
-│
-├── scripts/                     Automation (PowerShell, cross-platform via pwsh)
-│   ├── start-task.ps1           Bootstrap a ticket: .spec/<ticket>/ scaffolding
-│   └── build-spec-map.ps1       Generate/diff spec-map.md so the index never drifts
-│
-└── shell/
-    └── aliases.sh               cc/ccr/ccp aliases, wt/wtrm worktree helpers, ctx, sprint, init-claude-md
-```
+- **A claim is not evidence.** "Done" means the acceptance criteria have proof.
+- **Verify is not Review.** Tests ask whether it works; review asks whether it
+  is the right, safe, maintainable thing.
 
-## How tools consume this
+The complete process lives in [`workflow.md`](workflow.md).
 
-- **Claude Code** — global rules live in `~/.claude/CLAUDE.md` (start from
-  `claude-code/CLAUDE.md.example`); skills and subagents install as a plugin from
-  `claude-code/plugin/` (see Setup). Plugin skills that mirror tool-agnostic files
-  (workflow, verify-done, pitfalls) embed a copy with a `Canonical source` header —
-  when you change one side, update the other.
-- **Codex** — `~/.codex/AGENTS.md` mirrors the same global rules; per-project
-  `AGENTS.md` files reference these files.
-- **Project-level** — each repo has an `AGENTS.md` (from
-  `templates/AGENTS.md.template`) as its single source of truth, plus a thin
-  `CLAUDE.md` that imports it via `@AGENTS.md`. Both point back here for global
-  process. Each project declares `Project type: personal | team` at the top —
-  see `workflow.md` for what that toggles.
+## One workflow, different model budgets
 
-## Setup on a new machine
+There is no separate "smart model workflow" and "cheap model workflow." The
+same acceptance criteria, verification, review, and evidence gates apply to
+both. What changes is how much judgment and autonomy the model receives.
+
+| Capability profile | Good fit | Operating boundary |
+|---|---|---|
+| **Fast / low-cost** | search, classification, formatting, deterministic checks | exact files, narrow output, read-only by default |
+| **General coding** | a well-specified implementation slice, test repair, routine refactors | one atomic task, focused diff, required test command |
+| **Strongest reasoning** | ambiguous requirements, architecture, conflicting evidence, high-risk review | broader context and judgment, but no skipped gates |
+
+Use a weaker model by making the task smaller and the contract more explicit,
+not by lowering the definition of done. Escalate when risk or uncertainty
+increases, not merely because the workflow reached a particular stage. The
+full routing and escalation policy lives in [`workflow.md`](workflow.md).
+
+## Start with the problem you have
+
+| If you need to… | Start here |
+|---|---|
+| understand the principles behind the workflow | [`PHILOSOPHY.md`](PHILOSOPHY.md) |
+| run the full Define → Ship process | [`workflow.md`](workflow.md) |
+| avoid the mistakes that shaped these rules | [`GOTCHAS.md`](GOTCHAS.md) |
+| decode terms such as evidence block, living tier, or system map | [`GLOSSARY.md`](GLOSSARY.md) |
+| clarify a vague request | [`prompts/grill-me.md`](prompts/grill-me.md) |
+| prove a task is actually complete | [`prompts/verify-done.md`](prompts/verify-done.md) |
+| review AI-generated code adversarially | [`prompts/review-checklist.md`](prompts/review-checklist.md) |
+| start a ticket with the right files | [`scripts/start-task.ps1`](scripts/start-task.ps1) |
+| avoid Go, Python, or production-LLM traps | [`pitfalls/`](pitfalls) |
+
+## What lives here
+
+| Area | Job |
+|---|---|
+| [`prompts/`](prompts) | reusable actions: clarify, review, debug, audit, verify |
+| [`pitfalls/`](pitfalls) | pre-write checklists for mistakes AI repeats |
+| [`templates/`](templates) | project rules, specs, tasks, ADRs, maps, and hooks |
+| [`claude-code/plugin/`](claude-code/plugin) | optional Claude Code adapter: skills and planner/builder/reviewer agents |
+| [`scripts/`](scripts) | task bootstrap, spec-map generation, close-the-loop guard |
+| [`shell/aliases.sh`](shell/aliases.sh) | small worktree and context helpers |
+
+The canonical documents stay tool-agnostic. Adapter copies under
+`claude-code/plugin/skills/` carry a `Canonical source` header so drift is
+visible and reviewable.
+
+## Use it with any coding agent
+
+Clone the shared layer; that is enough to use the canonical documents:
 
 ```bash
-git clone <your-private-remote> ~/.ai-workflow
+git clone https://github.com/zoetw88/ai-workflow.git ~/.ai-workflow
+```
 
-# shell helpers (add to ~/.zshrc or ~/.bashrc)
+Optional shell helpers:
+
+```bash
 source ~/.ai-workflow/shell/aliases.sh
-
-# Claude Code global rules
-cp ~/.ai-workflow/claude-code/CLAUDE.md.example ~/.claude/CLAUDE.md   # then personalize
 ```
 
-Claude Code skills + subagents install as a plugin — inside Claude Code run:
+For a new project, copy the portable source of truth:
 
+```text
+templates/AGENTS.md.template  → AGENTS.md
 ```
+
+Then configure your coding agent to read `AGENTS.md` and the canonical
+`workflow.md`. For a new ticket:
+
+```powershell
+pwsh ~/.ai-workflow/scripts/start-task.ps1
+```
+
+### Codex
+
+Codex reads project `AGENTS.md` files directly. Keep repo-specific context in
+that file and link back to this repository for the global process.
+
+### Claude Code
+
+Use [`templates/CLAUDE.md.template`](templates/CLAUDE.md.template) as a thin
+shim that imports `AGENTS.md`. The plugin is optional; it packages the same
+workflow as native skills and subagents.
+
+Inside Claude Code:
+
+```text
 /plugin marketplace add zoetw88/ai-workflow
 /plugin install ai-workflow@zoetw88
 ```
 
-This gives you the `six-stage-workflow`, `grill-me`, `verify-done`, `go-pitfalls`,
-`python-pitfalls`, `build-system-map`, and `portfolio-scan` skills plus the
-`planner` / `builder` / `reviewer` subagents, with one-command updates — no manual
-copying into `~/.claude/`.
+This installs the workflow, clarification, verification, pitfall, system-map,
+and portfolio skills plus the planner, builder, and reviewer agents.
 
-Per new project: copy `templates/AGENTS.md.template` → `AGENTS.md`,
-`templates/CLAUDE.md.template` → `CLAUDE.md`, and optionally
-`templates/pre-commit.template.yaml` → `.pre-commit-config.yaml`.
+For global rules, start from
+[`claude-code/CLAUDE.md.example`](claude-code/CLAUDE.md.example).
 
-Per new ticket: run `scripts/start-task.ps1` (or copy `templates/spec.md` and
-`templates/tasks.md` into `.spec/<ticket>/` by hand).
+### Other coding agents
 
-One-time, once your repos are cloned: run the `prompts/system-map-scan.md` procedure to
-build `~/.ai-workflow/system-map.md` (agents read it instead of re-exploring every repo
-each session — close-the-loop keeps it patched), and `prompts/portfolio-scan.md` for
-`portfolio.md` (refresh monthly or when deciding what to work on).
+Point the tool's project-instruction mechanism at `AGENTS.md`. If it cannot
+import another file, keep a thin tool-specific shim that tells the agent to
+read `AGENTS.md`; do not maintain two copies of the rules. Parallel-agent and
+automatic model routing features are optional optimizations, not prerequisites
+for the six-stage workflow.
 
-## Where new content goes
+## When something new is learned
 
-| You learned / built | Put it in |
+Every durable rule should have one home:
+
+| What changed | Put it here |
 |---|---|
-| A reusable prompt pattern | `prompts/` |
-| A language/library trap AI keeps hitting | `pitfalls/<lang>.md` |
-| A repo-specific gotcha | that repo's `AGENTS.md`, not here |
-| A ticket-specific workaround | that ticket's `.spec/<ticket>/ai-development-map.md` |
-| A new/changed entry point, endpoint, event, or cross-repo edge | patch `system-map.md` in the same PR (close-the-loop step 4) |
-| A project changed status (paused, archived, new) | rerun `prompts/portfolio-scan.md` |
-| A new doc/file every project needs | `templates/` |
-| A Claude Code skill or subagent | `claude-code/plugin/skills/` or `agents/` — bump `plugin.json` version; mirrored skills carry a `Canonical source` header, keep both sides in sync |
-| A process change | `workflow.md` |
-| A principle change | `PHILOSOPHY.md` (rare) |
+| a reusable prompt pattern | `prompts/` |
+| a language or library trap AI repeats | `pitfalls/<language>.md` |
+| a repo-specific gotcha | that repo's `AGENTS.md` |
+| a ticket-specific workaround | `.spec/<ticket>/ai-development-map.md` |
+| a process change | `workflow.md` |
+| a principle change | `PHILOSOPHY.md` — rarely |
+| a public entry point or integration edge | patch `system-map.md` in the same PR |
+
+This is how the workflow improves: not from collecting more instructions, but
+from turning real failures into rules at the correct boundary.
 
 ## Built with this workflow
 
-- [job-tracker-skill](https://github.com/zoetw88/job-tracker-skill) — Claude Code skill for systematic job search tracking: funnel metrics, interview logs, follow-up cadence, rejection-stage analysis.
+- [job-tracker-skill](https://github.com/zoetw88/job-tracker-skill) — a
+  Claude Code adapter for funnel metrics, interview logs, follow-up cadence,
+  and rejection-stage analysis, built with the same tool-agnostic process.
 
-## Versioning
+## The longer story
 
-This directory is a git repo. Commit and push every change — when you change
-machines, clone it and you're back.
+Read [AI Is a Coworker Who Overstates Its Progress: How I Build With It](https://zoe-builds.com/en/articles/my-ai-workflow/)
+for the failure behind these rules and why acceptance criteria changed the way
+I work with agents.
 
----
-
-More from [Zoe](https://zoe-site-ten.vercel.app): practical notes on AI products, backend systems, and engineering judgment without the hype.
+More from [Zoe](https://zoe-builds.com): practical notes on AI products,
+backend systems, and engineering judgment without the hype.

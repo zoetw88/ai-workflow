@@ -152,16 +152,20 @@ Most teams collapse them. Don't.
 
 ## Parallel agents
 
-Claude Code can spawn multiple `Agent` calls in a single message. They run concurrently with independent context windows. The main session sees only each agent's final summary, which protects main-session context from being polluted with raw search results.
+If the current tool supports subagents, use them as isolated workers with
+self-contained prompts and independent context. The orchestrator should receive
+short final reports rather than every raw search result. Claude Code, Codex, and
+other agent tools expose different APIs for this; parallelism is an optimization,
+not a requirement for the workflow.
 
 ### Use parallel agents for
 
 | Stage | Parallel pattern | Why |
 |---|---|---|
-| **Define** (audit-heavy) | N × `Explore` agents, each on a different code area | Cuts wall-clock 4-10× on cross-repo audits |
-| **Review** | reviewer subagent + parallel `security-review` / perf-review agents | Different lenses don't share blind spots |
-| Investigation / spec gap-finding | N × `Explore` agents (one per repo, one per concern) | Independent context = independent conclusions |
-| Verifying a non-trivial claim | second-opinion `general-purpose` agent in parallel with continuing work | Cheap insurance |
+| **Define** (audit-heavy) | N × read-only explorers, each on a different code area | Reduces wall-clock time without mixing raw context |
+| **Review** | fresh reviewer + separate security / performance lenses | Different contexts do not share the same blind spots |
+| Investigation / spec gap-finding | one read-only worker per repo or concern | Independent context produces independent conclusions |
+| Verifying a non-trivial claim | second-opinion worker while the main agent continues unrelated work | Cheap insurance when the claim matters |
 
 ### Do NOT use parallel agents for
 
@@ -174,26 +178,26 @@ Claude Code can spawn multiple `Agent` calls in a single message. They run concu
 
 ### How to call them well
 
-- **One message, many `Agent` blocks.** If you write them sequentially, they run sequentially.
+- **Dispatch independent calls concurrently.** Use the tool's actual parallel mechanism; sequential calls do not become parallel because the prompts look similar.
 - **Each prompt is self-contained.** The agent has no view of main-session history. Include file paths, the question, and what form the answer should take.
 - **Cap each agent's report length.** Long reports refill main context — defeats the purpose. "Report in under 200 words" is a fair default.
-- **Pick the right agent type.**
-  - `Explore` — fast read-only lookups (Haiku, no edits)
-  - `general-purpose` — complex multi-step research / open questions
-  - `Plan` — implementation plans (read-only, returns plan)
-  - dedicated subagents (`planner`, `builder`, `tester`, `reviewer`) — workflow-stage roles
+- **Pick the right role and permissions, not a product-specific agent name.**
+  - read-only explorer — file discovery and bounded code search
+  - research / planning worker — multi-step investigation with no writes
+  - builder — one specified implementation slice in an isolated worktree
+  - tester / reviewer — deterministic verification or a fresh judgment context
 - **Trust but verify.** Agent summaries describe intent, not always reality. If an agent claimed to edit files, check the diff yourself before reporting work as done.
 - **Don't duplicate work.** If you delegated research to an agent, do NOT also grep / read the same files — your job during the wait is something else (write the next test, draft the spec, prep the review checklist).
 
 ### Audit pattern (concrete example)
 
-For a wide cross-repo audit, in one message spawn:
+For a wide cross-repo audit, dispatch concurrently:
 
 ```
-Agent 1 (Explore): audit Repo-A for <pattern> — under 200 words
-Agent 2 (Explore): audit Repo-B for <pattern> — under 200 words
-Agent 3 (Explore): audit Repo-C for <pattern> — under 200 words
-Agent 4 (Explore): cross-reference shared library usage — under 200 words
+Worker 1 (read-only): audit Repo-A for <pattern> — under 200 words
+Worker 2 (read-only): audit Repo-B for <pattern> — under 200 words
+Worker 3 (read-only): audit Repo-C for <pattern> — under 200 words
+Worker 4 (read-only): cross-reference shared library usage — under 200 words
 ```
 
 Then synthesize the four reports into `.spec/<ticket>/audit.md`.
@@ -203,9 +207,7 @@ This is the move I should have made on a real cross-repo audit ticket — instea
 ### Review depth scales with risk
 
 Default is **one reviewer** (fresh context, `prompts/review-checklist.md`). A full multi-lens
-panel on every diff burns tokens without producing extra findings on low-risk changes —
-superpowers v6 reached the same conclusion when it merged its two per-task reviewers into one
-with no measured quality loss.
+panel on every diff burns tokens without reliably adding findings on low-risk changes.
 
 Escalate to the 3-lens panel below only when the diff touches:
 
@@ -222,33 +224,47 @@ already demand integration tests get the panel; everything else gets one reviewe
 After Build is complete, in one message spawn:
 
 ```
-Agent A (reviewer subagent): spec-conformance review against .spec/current.md
-Agent B (general-purpose): security review — OWASP top-10 lens on diff
-Agent C (general-purpose): performance review — DB queries, N+1, hot paths
+Worker A (fresh reviewer): spec-conformance review against .spec/current.md
+Worker B (security lens): OWASP top-10 review of the diff
+Worker C (performance lens): DB queries, N+1, hot paths
 ```
 
 Three independent reports = three independent blind spots covered.
 Human reads all three, decides what to accept.
 
-## Model assignment (when using Claude Code or Codex with auto-switch)
+## Model routing: one workflow, different autonomy
 
-| Stage   | Model (Claude)        | Model (Codex)              |
-|---------|-----------------------|----------------------------|
-| Define  | Opus 4.8              | gpt-5.4 + high reasoning   |
-| Plan    | Opus 4.8              | gpt-5.4 + high reasoning   |
-| Build   | Sonnet 5              | gpt-5.4-mini + flex tier   |
-| Verify  | Haiku 4.5             | gpt-5.4-mini + low reasoning|
-| Review  | Opus 4.8              | gpt-5.4 + high reasoning   |
-| Ship    | Haiku 4.5             | gpt-5.4-mini + flex tier   |
+Do not maintain separate strong-model and weak-model workflows. Every model must
+meet the same acceptance criteria, verification, review, and evidence gates. Model
+capability changes task shape and autonomy, not the definition of done.
 
-The latest Opus is the default for ALL judgment-heavy stages — "Opus 4.8" above means
-"newest Opus available" ($5/$25 per MTok, Anthropic's own recommended default, SOTA on
-long-horizon agentic work). Fable 5 ($10/$50) is a separately paid tier — do NOT assume
-it's available. Only if the budget covers it, consider it for ADR-level architecture
-decisions or as the judge in a high-risk review panel; even then, keep the security lens
-on Opus (Fable's cyber classifiers can false-positive on legitimate security review),
-plan for minutes-long turns, and note it requires 30-day data retention. Revisit this
-table whenever a model family ships.
+| Stage | Default capability | Why |
+|---|---|---|
+| **Define** | strongest reasoning available | resolve ambiguity, constraints, and failure modes |
+| **Plan** | strongest reasoning available | make architecture and dependency order explicit |
+| **Build** | general coding model | the spec should reduce the work to one atomic slice |
+| **Verify** | fast / low-cost model or deterministic runner | execute known commands and report exact output |
+| **Review** | strongest reasoning available, fresh context | challenge the implementation and reconcile evidence |
+| **Ship** | fast / low-cost model | assemble status, commit, and PR evidence; human owns release approval |
+
+These are defaults, not brand mappings. Provider model names, prices, and aliases
+change faster than this workflow should. Choose the current model that matches the
+capability profile in the provider you are actually using.
+
+### How the operating style changes
+
+- **Fast / lower-capability model:** give exact files, one bounded question, an
+  output schema, and read-only permissions by default. Do not delegate architecture,
+  security decisions, or cross-cutting writes.
+- **General coding model:** give one accepted task, the relevant spec slice, the
+  allowed change surface, and the exact verification command.
+- **Strongest reasoning model:** give the broader decision context for ambiguous or
+  high-risk work, but still require tests, independent review, and evidence.
+
+Escalate one tier when requirements remain ambiguous, a decision crosses system
+boundaries, the diff touches auth / money / migrations / concurrency / public APIs,
+evidence conflicts, or the current model fails twice on the same bounded task. A
+stronger model may inspect a wider context; it may never waive a gate.
 
 ## What humans always own
 

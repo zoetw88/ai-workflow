@@ -68,11 +68,12 @@ and resume without re-explaining everything.
 If the AI drifts, forgets, or gets something wrong:
 1. Fix the immediate issue
 2. Ask: is this a one-off, or a recurring pattern?
-3. If recurring → add a rule to your `CLAUDE.md` or a project-level
-   `gotchas.md`. Don't let the same mistake bite twice.
+3. If recurring → add a rule to the project's `AGENTS.md` (or the thin
+   tool-specific shim that points to it) or to a project-level `gotchas.md`.
+   Don't let the same mistake bite twice.
 
-This is how `CLAUDE.md` grows over time. It's not written in one
-sitting — it's curated over months from real mistakes.
+This is how the agent-instruction layer grows over time. It is not written in
+one sitting — it is curated over months from real mistakes.
 
 ---
 
