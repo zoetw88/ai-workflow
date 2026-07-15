@@ -13,7 +13,7 @@ The code at <path> has a bug. AI wrote it. Walk through this SOP:
 2. **Bisect.** If the AI wrote multiple files, find which file is
    the culprit by reverting them one at a time.
 
-3. **Match to spec.** Read the spec (.spec/current.md or what I
+3. **Match to spec.** Read the spec (.spec/<ticket>/current.md or what I
    told you to build). For each acceptance criterion, verify the
    code actually implements it. Anything not matched → that's the
    bug source.

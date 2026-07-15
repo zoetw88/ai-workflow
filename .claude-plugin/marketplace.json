@@ -1,6 +1,6 @@
 {
   "name": "zoetw88",
-  "description": "Zoe's AI development workflow as an installable Claude Code plugin: six-stage workflow, grill-me, verify-done, Go/Python pitfalls, and planner/builder/reviewer subagents.",
+  "description": "Optional Claude Code adapter for Zoe's tool-agnostic, evidence-first six-stage development workflow.",
   "owner": {
     "name": "zoetw88"
   },
@@ -8,7 +8,7 @@
     {
       "name": "ai-workflow",
       "source": "./claude-code/plugin",
-      "description": "Six-stage AI development workflow: grill-me requirement clarification, spec-driven TDD build in isolated worktrees, evidence-based verify, risk-tiered review — plus planner/builder/reviewer subagents and Go/Python pitfall checklists."
+      "description": "Evidence-first six-stage workflow with proportional isolation, risk-based model and reviewer routing, approval gates, and durable handoffs."
     }
   ]
 }
