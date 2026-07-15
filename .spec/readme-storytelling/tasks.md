@@ -5,4 +5,4 @@
 - [x] Add `GOTCHAS.md` and `GLOSSARY.md`.
 - [x] Add thin repository-local agent rules and update living project notes.
 - [x] Validate Markdown links, GitHub rendering, and repository checks.
-- [ ] Review the final diff, commit, push, and open a draft PR.
+- [x] Review the final diff, commit, push, and open draft PR #15.
