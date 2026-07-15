@@ -33,7 +33,7 @@ cost-conscious, risk-based agent practice.
       declines a worktree.
 - [x] Claude adapter copies, related prompts, and plugin metadata stay aligned
       with the canonical workflow; plugin version is at least `0.4.0`.
-- [ ] Targeted docs-contract tests, Markdown links, GitHub rendering,
+- [x] Targeted docs-contract tests, Markdown links, GitHub rendering,
       `git diff --check`, and the close-loop guard pass.
 
 ## Non-goals

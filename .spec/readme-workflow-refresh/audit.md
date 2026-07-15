@@ -90,3 +90,9 @@ or wording.
   notices).
 - Claude plugin CLI validation was not run because `claude` is not installed in
   this environment; JSON parsing and mirror-contract tests are the local proof.
+
+## Published handoff
+
+- Core commit: `c4ae17e`
+- Ready PR: [#17](https://github.com/zoetw88/ai-workflow/pull/17)
+- Integration is intentionally pending Zoe's explicit merge approval.

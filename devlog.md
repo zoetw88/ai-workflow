@@ -9,6 +9,7 @@
 - **Why**: The public page was table-heavy, the generic path was secondary, and
   several written guarantees disagreed with what the local scripts enforced.
 - **Spec/Plan**: `.spec/readme-workflow-refresh/current.md`
+- **PR**: [#17](https://github.com/zoetw88/ai-workflow/pull/17)
 - **Evidence**: 15 contract/integration tests, PowerShell parse, JSON parse,
   relative-link validation, GitHub Markdown render, and `git diff --check` pass.
 - **Notes**: Pilotfish influenced only the attributed, tool-agnostic role

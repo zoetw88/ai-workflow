@@ -9,4 +9,4 @@
 - [x] Sync the Claude adapter, related prompts, templates, and plugin metadata.
 - [x] Harden task bootstrap and close-loop enforcement from reviewer findings.
 - [x] Update living docs and record verification evidence.
-- [ ] Review the final diff, commit, push, and open a ready PR.
+- [x] Review the final diff, commit, push, and open a ready PR.
