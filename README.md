@@ -1,4 +1,4 @@
-# AI Workflow — AI × backend reality
+# AI Workflow — evidence-first engineering with coding agents
 
 > **AI is a capable coworker who overstates its progress. Ask for evidence.**
 
@@ -12,9 +12,10 @@ it as a system:
 
 `messy request → explicit contract → isolated work → evidence → independent review → durable handoff`
 
-This repository is that system. It is the tool-agnostic layer I share between
-Claude Code, Codex, and whatever comes next. Tool-specific configuration is
-glue; the rules that matter live in files.
+This repository is that system: portable Markdown contracts, prompts,
+templates, and checks that any coding agent can follow. Claude Code and Codex
+have convenient adapters here, but neither is required. Tool-specific
+configuration is glue; the rules that matter live in files.
 
 ## The operating loop
 
@@ -34,6 +35,23 @@ Two distinctions carry most of the weight:
   is the right, safe, maintainable thing.
 
 The complete process lives in [`workflow.md`](workflow.md).
+
+## One workflow, different model budgets
+
+There is no separate "smart model workflow" and "cheap model workflow." The
+same acceptance criteria, verification, review, and evidence gates apply to
+both. What changes is how much judgment and autonomy the model receives.
+
+| Capability profile | Good fit | Operating boundary |
+|---|---|---|
+| **Fast / low-cost** | search, classification, formatting, deterministic checks | exact files, narrow output, read-only by default |
+| **General coding** | a well-specified implementation slice, test repair, routine refactors | one atomic task, focused diff, required test command |
+| **Strongest reasoning** | ambiguous requirements, architecture, conflicting evidence, high-risk review | broader context and judgment, but no skipped gates |
+
+Use a weaker model by making the task smaller and the contract more explicit,
+not by lowering the definition of done. Escalate when risk or uncertainty
+increases, not merely because the workflow reached a particular stage. The
+full routing and escalation policy lives in [`workflow.md`](workflow.md).
 
 ## Start with the problem you have
 
@@ -56,7 +74,7 @@ The complete process lives in [`workflow.md`](workflow.md).
 | [`prompts/`](prompts) | reusable actions: clarify, review, debug, audit, verify |
 | [`pitfalls/`](pitfalls) | pre-write checklists for mistakes AI repeats |
 | [`templates/`](templates) | project rules, specs, tasks, ADRs, maps, and hooks |
-| [`claude-code/plugin/`](claude-code/plugin) | Claude Code skills and planner/builder/reviewer agents |
+| [`claude-code/plugin/`](claude-code/plugin) | optional Claude Code adapter: skills and planner/builder/reviewer agents |
 | [`scripts/`](scripts) | task bootstrap, spec-map generation, close-the-loop guard |
 | [`shell/aliases.sh`](shell/aliases.sh) | small worktree and context helpers |
 
@@ -64,9 +82,9 @@ The canonical documents stay tool-agnostic. Adapter copies under
 `claude-code/plugin/skills/` carry a `Canonical source` header so drift is
 visible and reviewable.
 
-## Install
+## Use it with any coding agent
 
-Clone the shared layer:
+Clone the shared layer; that is enough to use the canonical documents:
 
 ```bash
 git clone https://github.com/zoetw88/ai-workflow.git ~/.ai-workflow
@@ -78,7 +96,29 @@ Optional shell helpers:
 source ~/.ai-workflow/shell/aliases.sh
 ```
 
+For a new project, copy the portable source of truth:
+
+```text
+templates/AGENTS.md.template  → AGENTS.md
+```
+
+Then configure your coding agent to read `AGENTS.md` and the canonical
+`workflow.md`. For a new ticket:
+
+```powershell
+pwsh ~/.ai-workflow/scripts/start-task.ps1
+```
+
+### Codex
+
+Codex reads project `AGENTS.md` files directly. Keep repo-specific context in
+that file and link back to this repository for the global process.
+
 ### Claude Code
+
+Use [`templates/CLAUDE.md.template`](templates/CLAUDE.md.template) as a thin
+shim that imports `AGENTS.md`. The plugin is optional; it packages the same
+workflow as native skills and subagents.
 
 Inside Claude Code:
 
@@ -93,23 +133,13 @@ and portfolio skills plus the planner, builder, and reviewer agents.
 For global rules, start from
 [`claude-code/CLAUDE.md.example`](claude-code/CLAUDE.md.example).
 
-### Codex and other agents
+### Other coding agents
 
-Codex reads project `AGENTS.md` files directly. Other tools can consume the
-same Markdown sources without adopting the Claude plugin format.
-
-For a new project, copy:
-
-```text
-templates/AGENTS.md.template  → AGENTS.md
-templates/CLAUDE.md.template  → CLAUDE.md
-```
-
-For a new ticket:
-
-```powershell
-pwsh ./scripts/start-task.ps1
-```
+Point the tool's project-instruction mechanism at `AGENTS.md`. If it cannot
+import another file, keep a thin tool-specific shim that tells the agent to
+read `AGENTS.md`; do not maintain two copies of the rules. Parallel-agent and
+automatic model routing features are optional optimizations, not prerequisites
+for the six-stage workflow.
 
 ## When something new is learned
 
@@ -130,9 +160,9 @@ from turning real failures into rules at the correct boundary.
 
 ## Built with this workflow
 
-- [job-tracker-skill](https://github.com/zoetw88/job-tracker-skill) — a Claude
-  Code skill for funnel metrics, interview logs, follow-up cadence, and
-  rejection-stage analysis.
+- [job-tracker-skill](https://github.com/zoetw88/job-tracker-skill) — a
+  Claude Code adapter for funnel metrics, interview logs, follow-up cadence,
+  and rejection-stage analysis, built with the same tool-agnostic process.
 
 ## The longer story
 

@@ -23,6 +23,12 @@ the next agent what to read, what changed, what remains, and which traps matter.
 The one file that owns a rule. Other copies are adapters or mirrors and must
 declare where the canonical version lives.
 
+## Capability profile
+
+A provider-neutral description of how much reasoning, autonomy, and context a
+task requires: fast / low-cost, general coding, or strongest reasoning. It is
+more durable than naming a model version that will soon change.
+
 ## Close the loop
 
 The Ship-stage discipline of updating current task state, handoff documents,
@@ -42,6 +48,12 @@ explains what was known or decided at a point in time; it is not current truth.
 
 Documents that must match the current state, including the active spec, task
 checklist, development log, and work queue.
+
+## Model routing
+
+Choosing a capability profile from task risk and uncertainty. Routing changes
+task size, permissions, and escalation; it never lowers acceptance criteria or
+evidence requirements.
 
 ## Pitfall / gotcha
 
@@ -70,6 +82,12 @@ navigation once a project has enough `.spec/` areas to justify another index.
 An agent-facing cross-repository context cache: locations, entry points, public
 surfaces, dependencies, and integration edges. It answers "where does this
 change travel?"
+
+## Tool adapter
+
+A thin integration that translates the canonical Markdown workflow into one
+agent product's native format, such as a plugin, skill, or instruction-file
+shim. The adapter is not the source of truth.
 
 ## Verify
 

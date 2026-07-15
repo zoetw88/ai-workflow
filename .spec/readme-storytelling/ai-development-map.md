@@ -13,6 +13,10 @@
 ## Change surface
 
 - Public entry point: `README.md`
+- Canonical process and model routing: `workflow.md`
+- Principle wording: `PHILOSOPHY.md`
+- Claude adapter mirror: `claude-code/plugin/skills/six-stage-workflow/SKILL.md`
+- Claude plugin version: `claude-code/plugin/.claude-plugin/plugin.json`
 - New navigation documents: `GOTCHAS.md`, `GLOSSARY.md`
 - Repository rules: `AGENTS.md`
 - Living notes: `devlog.md`, `todo.md`
@@ -26,4 +30,5 @@
 
 ## Out of scope
 
-- Plugin code, versions, prompt contents, scripts, and workflow semantics.
+- Native adapters for tools other than the existing Claude Code plugin.
+- Runtime code, scripts, project templates, and prompt contents.
