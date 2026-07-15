@@ -139,7 +139,8 @@ function Ensure-SpecScaffold {
     $taskDir = Join-Path $RepoPath ".spec\$Ticket"
     $null = New-Item -ItemType Directory -Path $taskDir -Force
 
-    $templatesDir = Join-Path $HOME ".ai-workflow\templates"
+    $workflowRoot = Split-Path $PSScriptRoot -Parent
+    $templatesDir = Join-Path $workflowRoot "templates"
     $copies = @(
         @{ Source = (Join-Path $templatesDir "tasks.md"); Target = (Join-Path $taskDir "tasks.md") }
         @{ Source = (Join-Path $templatesDir "ai-development-map.md"); Target = (Join-Path $taskDir "ai-development-map.md") }
@@ -167,6 +168,139 @@ function Ensure-SpecScaffold {
     }
 }
 
+function Write-CurrentSpec {
+    param(
+        [string]$RepoPath,
+        [string]$Ticket,
+        [System.Collections.IDictionary]$Intake
+    )
+
+    $currentPath = Join-Path $RepoPath ".spec\$Ticket\current.md"
+    if (Test-Path $currentPath) {
+        Write-Host "Spec already exists; preserving: $currentPath"
+        return
+    }
+
+    $reserved = @(
+        "ticket", "repo", "project_path", "task_description", "goal",
+        "done_definition", "non_scope", "scope_constraints", "source_type",
+        "source_link", "priority"
+    )
+    $details = New-Object System.Collections.Generic.List[string]
+    foreach ($entry in $Intake.GetEnumerator()) {
+        if ($entry.Key -in $reserved) {
+            continue
+        }
+        $details.Add("- **$($entry.Key)**: $($entry.Value)")
+    }
+    if ($details.Count -eq 0) {
+        $details.Add("- None recorded.")
+    }
+
+    $content = @"
+# $Ticket — $($Intake["task_description"])
+
+## Goal
+
+$($Intake["goal"])
+
+## Acceptance criteria
+
+- [ ] $($Intake["done_definition"])
+
+## Non-goals
+
+$($Intake["non_scope"])
+
+## Constraints
+
+- Priority: $($Intake["priority"])
+- Scope: $($Intake["scope_constraints"])
+
+## Source
+
+- Type: $($Intake["source_type"])
+- Link: $($Intake["source_link"])
+
+## Intake details
+
+$($details -join [Environment]::NewLine)
+
+## Open questions
+
+- None recorded at intake. Add unresolved decisions here before Build.
+"@
+
+    $content | Set-Content -LiteralPath $currentPath -Encoding utf8
+    Write-Host "Current spec created: $currentPath"
+}
+
+function Get-GitRoot {
+    param([string]$RepoPath)
+
+    $root = git -C $RepoPath rev-parse --show-toplevel 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($root)) {
+        throw "Not a Git repository: $RepoPath"
+    }
+
+    return [System.IO.Path]::GetFullPath($root.Trim())
+}
+
+function Ensure-FeatureBranch {
+    param(
+        [string]$RepoPath,
+        [string]$Ticket
+    )
+
+    $currentBranch = (git -C $RepoPath branch --show-current).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($currentBranch)) {
+        throw "Cannot start a tracked task from a detached HEAD: $RepoPath"
+    }
+
+    if ($currentBranch -eq $Ticket) {
+        return $RepoPath
+    }
+
+    $originDefault = git -C $RepoPath symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>$null
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($originDefault)) {
+        $originDefault = $originDefault.Trim() -replace '^origin/', ''
+    }
+    else {
+        $originDefault = ""
+    }
+
+    $sharedBranches = @("main", "master", "dev")
+    if ($originDefault) {
+        $sharedBranches += $originDefault
+    }
+
+    if ($currentBranch -notin $sharedBranches) {
+        throw "Already on feature branch '$currentBranch'. Switch to the default branch or use ticket '$currentBranch' before starting another task."
+    }
+
+    $dirty = @(git -C $RepoPath status --porcelain)
+    if ($LASTEXITCODE -ne 0) {
+        throw "git status failed for $RepoPath"
+    }
+    if ($dirty.Count -gt 0) {
+        throw "Working tree has uncommitted changes. Preserve or commit them before creating branch '$Ticket'."
+    }
+
+    git -C $RepoPath show-ref --verify --quiet "refs/heads/$Ticket"
+    if ($LASTEXITCODE -eq 0) {
+        git -C $RepoPath switch $Ticket
+    }
+    else {
+        git -C $RepoPath switch -c $Ticket
+    }
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not switch to feature branch '$Ticket'"
+    }
+
+    Write-Host "Feature branch ready: $Ticket"
+    return $RepoPath
+}
+
 function Ensure-Worktree {
     param(
         [string]$RepoPath,
@@ -174,22 +308,77 @@ function Ensure-Worktree {
     )
 
     $branch = $Ticket
+    $currentBranch = (git -C $RepoPath branch --show-current).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($currentBranch)) {
+        throw "Cannot create a ticket worktree from a detached HEAD: $RepoPath"
+    }
+
+    $originDefault = git -C $RepoPath symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>$null
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($originDefault)) {
+        $originDefault = $originDefault.Trim() -replace '^origin/', ''
+    }
+    else {
+        $originDefault = ""
+    }
+
+    $sharedBranches = @("main", "master", "dev")
+    if ($originDefault) {
+        $sharedBranches += $originDefault
+    }
+    if ($currentBranch -notin $sharedBranches) {
+        throw "Cannot create worktree '$Ticket' from feature branch '$currentBranch'. Switch to the default or integration branch first."
+    }
+
+    $dirty = @(git -C $RepoPath status --porcelain)
+    if ($LASTEXITCODE -ne 0) {
+        throw "git status failed for $RepoPath"
+    }
+    if ($dirty.Count -gt 0) {
+        throw "Working tree has uncommitted changes. Preserve or commit them before creating worktree '$Ticket'."
+    }
+
     $repoName = Split-Path $RepoPath -Leaf
     $parent = Split-Path $RepoPath -Parent
     $worktreePath = Join-Path $parent ("$repoName-" + ($branch -replace '/', '-'))
 
     if (Test-Path $worktreePath) {
+        $expectedPath = [System.IO.Path]::GetFullPath($worktreePath)
+        $registeredPaths = New-Object System.Collections.Generic.List[string]
+        $worktreeList = git -C $RepoPath worktree list --porcelain
+        if ($LASTEXITCODE -ne 0) {
+            throw "git worktree list failed for $RepoPath"
+        }
+        foreach ($line in $worktreeList) {
+            if ($line -match '^worktree\s+(.+)$') {
+                $registeredPaths.Add([System.IO.Path]::GetFullPath($Matches[1]))
+            }
+        }
+        if (-not ($registeredPaths | Where-Object { $_ -ieq $expectedPath })) {
+            throw "Path exists but is not a registered Git worktree: $worktreePath"
+        }
+        $worktreeBranch = (git -C $worktreePath branch --show-current).Trim()
+        if ($LASTEXITCODE -ne 0 -or $worktreeBranch -ne $Ticket) {
+            throw "Existing worktree '$worktreePath' is on '$worktreeBranch', expected '$Ticket'."
+        }
         Write-Host "Worktree already exists: $worktreePath"
         return $worktreePath
     }
 
-    git -C $RepoPath worktree add $worktreePath -b $branch
+    $worktreeOutput = @(git -C $RepoPath worktree add $worktreePath -b $branch $currentBranch 2>&1)
     if ($LASTEXITCODE -ne 0) {
         # branch may already exist — reuse it instead of creating one
-        git -C $RepoPath worktree add $worktreePath $branch
+        $worktreeOutput = @(git -C $RepoPath worktree add $worktreePath $branch 2>&1)
         if ($LASTEXITCODE -ne 0) {
             throw "git worktree add failed for $worktreePath (branch $branch)"
         }
+    }
+    if ($worktreeOutput.Count -gt 0) {
+        Write-Host ($worktreeOutput -join [Environment]::NewLine)
+    }
+
+    $createdBranch = (git -C $worktreePath branch --show-current).Trim()
+    if ($LASTEXITCODE -ne 0 -or $createdBranch -ne $Ticket) {
+        throw "Created worktree '$worktreePath' is on '$createdBranch', expected '$Ticket'."
     }
 
     Write-Host "Worktree created: $worktreePath"
@@ -478,6 +667,8 @@ if (-not (Test-Path $RepoPath)) {
     throw "Repo path does not exist: $RepoPath"
 }
 
+$RepoPath = Get-GitRoot -RepoPath $RepoPath
+
 if (-not $Ticket) {
     $Ticket = Prompt-Ticket
 }
@@ -529,6 +720,9 @@ if ($workflowMode -eq "ship" -and $commitMode -eq "no-commit") {
 if ($useWorktree) {
     $RepoPath = Ensure-Worktree -RepoPath $RepoPath -Ticket $Ticket
 }
+else {
+    $RepoPath = Ensure-FeatureBranch -RepoPath $RepoPath -Ticket $Ticket
+}
 
 if ($createSpec) {
     Ensure-SpecScaffold -RepoPath $RepoPath -Ticket $Ticket
@@ -571,6 +765,10 @@ foreach ($entry in $typeSpecificValues.GetEnumerator()) {
 
 if ($notes) {
     $intake["notes"] = $notes
+}
+
+if ($createSpec) {
+    Write-CurrentSpec -RepoPath $RepoPath -Ticket $Ticket -Intake $intake
 }
 
 $intakeBlock = Build-IntakeBlock -Intake $intake -KickoffPrompt $kickoffPrompt

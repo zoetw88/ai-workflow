@@ -4,7 +4,10 @@ Inspired by Matt Pocock's pattern. AI does not propose a solution. AI only asks 
 
 ## How to use
 
-When given a vague feature request, do NOT start writing or designing. Ask 3-7 clarifying questions across these dimensions:
+When a vague request leaves material product, risk, or authorization decisions
+unresolved, ask only the questions needed to settle them. First inspect the
+repository, ticket, and existing decisions for answers; do not ask the user to
+repeat discoverable context.
 
 ### Required dimensions (skip only if explicit in the request)
 
@@ -48,10 +51,11 @@ When given a vague feature request, do NOT start writing or designing. Ask 3-7 c
 
 ## Rules
 
-- ONE question per dimension — don't sprawl
+- Ask only questions whose answers change scope, behavior, risk, or authority
+- Prefer one question at a time; group only when the answers are independent
 - Phrase as "Do you want X or Y?" when possible, not open-ended
 - If user can't answer, propose a sensible default and call out the assumption
-- After ≤ 7 questions, summarize the spec and ask "Anything missing?"
+- Stop when the remaining uncertainty no longer changes the result
 - DO NOT propose implementation details until grill is done
 
 ## When NOT to grill

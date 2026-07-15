@@ -1,30 +1,46 @@
 # The 6-stage workflow
 
-Based on Addy Osmani's agent-skills, simplified.
+Influenced by [Addy Osmani's agent-skills](https://github.com/addyosmani/agent-skills),
+then adapted around evidence, proportional controls, and durable handoffs.
+Role contracts and fresh-context refutation also draw on the MIT-licensed
+[pilotfish design](https://github.com/Nanako0129/pilotfish/blob/main/docs/design.md).
 
 ## Stages
 
-1. **Define** — Grill the user. Produce `.spec/current.md`.
-2. **Plan** — Break the spec into atomic tasks. Produce `.spec/tasks.md`.
-3. **Build** — Implement one task at a time, in an isolated worktree (see Workspace isolation). TDD. One commit per task.
-4. **Verify** — Run tests. Tests are proof. Verify is NOT review. Before claiming done, produce the evidence block from `prompts/verify-done.md`.
-5. **Review** — Independent reviewer (fresh context). Check spec conformance + AI smells.
-6. **Ship** — Commit message, PR description, ADR if architectural. Run the close-the-loop checklist (see Context discipline) before opening the PR.
+1. **Define** — Turn the request into scope, constraints, non-goals, and
+   acceptance criteria in `.spec/<ticket>/current.md`. Ask only questions whose
+   answers materially change the result or authorization boundary.
+2. **Plan** — Break the accepted spec into atomic, dependency-ordered tasks in
+   `.spec/<ticket>/tasks.md`. Each task names its change surface and verification.
+3. **Build** — Implement one accepted slice at a time on a feature branch. Use
+   test-first development for new or fixed behavior when a test harness exists;
+   use the relevant validator for documentation, configuration, and generated data.
+4. **Verify** — Run the relevant checks and record exact commands, output, and
+   environment. A local pass is local evidence; it is not production-derived proof.
+5. **Review** — Use fresh context to check spec conformance, correctness, and the
+   risks the diff actually introduces. Fix and reverify findings, or record the
+   human decision that explicitly accepts them.
+6. **Ship** — Close the loop, create a cohesive commit and PR, and report what was
+   and was not verified. Ship prepares integration; it does not authorize merge,
+   migration, deployment, or another external state change.
 
-## Workspace isolation (git worktrees)
+## Proportional workspace isolation
 
-Build happens on a dedicated branch in a dedicated worktree — never on the main checkout:
+Every write belongs on a feature branch. Add a dedicated worktree when the task
+is non-trivial, parallel work is active, or the shared checkout must stay stable:
 
 ```bash
 git worktree add ../<repo>-<ticket> -b <ticket>    # or: wt <ticket> (shell/aliases.sh)
 ```
 
-- **Verify the baseline is green BEFORE writing anything.** Run the test suite in the fresh
-  worktree first. If it's already red, that's an `environment blocker` or `test defect` to
-  report (see Blockers) — not something to "fix along the way". A red baseline blamed on new
-  code is a classic time sink.
-- One ticket = one branch = one worktree. Parallel tickets never share a working directory.
-- Remove the worktree at Ship, after the PR is opened: `git worktree remove ../<repo>-<ticket>`.
+- Before editing, inspect `git status` and preserve unrelated user changes.
+- For a behavior change, run the narrow relevant baseline before writing. If it
+  is already red, classify the failure instead of fixing it incidentally.
+- A clean feature branch is enough for a bounded documentation or low-risk
+  single-file change. Do not create process overhead that adds no isolation.
+- Parallel writers never share a working directory; give each one a worktree.
+- Remove a task worktree after its PR is opened and its state is recoverable:
+  `git worktree remove ../<repo>-<ticket>`.
 
 `scripts/start-task.ps1` offers to create the worktree during ticket intake.
 
@@ -64,62 +80,27 @@ line in the same PR (see `prompts/system-map-scan.md`).
    edge, or shared lib, patch `~/.ai-workflow/system-map.md` too.
 5. Commit the doc updates into the SAME PR as the change.
 
-Steps 1–4 are mechanically enforced at push time by
-`scripts/check_close_the_loop.py` (wired via `templates/pre-commit.template.yaml`,
-pre-push stage): a push that changes code without touching any living-tier doc is
-rejected. Escape hatch for intentional exceptions: `CLOSE_THE_LOOP=skip git push`.
+`scripts/check_close_the_loop.py` can be wired at pre-push through
+`templates/pre-commit.template.yaml`. The guard is intentionally narrow: it
+rejects a code push when no living-tier document changed. It cannot prove that
+the right documents were updated, that their content is accurate, or that the
+system map is current. Review those obligations before Ship. Escape hatch for
+intentional exceptions: `CLOSE_THE_LOOP=skip git push`.
 
 ### Project type
 
-Each project declares `Project type: personal | team` at the top of its `CLAUDE.md` / `AGENTS.md`:
+Each project declares `Project type: personal | team` at the top of its
+`AGENTS.md` or thin tool-specific shim:
 
-- `personal` → `devlog.md` + `todo.md` are mandatory every session.
+- `personal` → `devlog.md` + `todo.md` are required for non-trivial tracked
+  tasks; a trivial doc correction does not need synthetic history.
 - `team` → they follow the team's convention; skip until the team has adopted them.
 
 Templates: `~/.ai-workflow/templates/{devlog.md,todo.md,CLAUDE.md.template,AGENTS.md.template}`.
 
-### Spec map (optional, threshold + generated)
-
-A `spec-map.md` indexes the `.spec/` areas. It earns its place only when there are many areas:
-
-- **Add it only when `.spec/` has > 8 areas.** Below that, `current.md` + `tasks.md` are enough;
-  a small project does not need a third index that can drift.
-- **Generate it, do not hand-maintain it.** A hand-written index goes stale — the exact problem
-  the two-tier model exists to prevent. Run `~/.ai-workflow/scripts/build-spec-map.ps1` and
-  re-run it as part of close-the-loop so the map never drifts from the folders on disk.
-- Keep the three index roles distinct: `current.md` = current truth/spec; `spec-map.md` =
-  navigation index of all areas; `ai-development-map.md` = per-ticket handoff read-order.
-
-### Portfolio (cross-project, generated)
-
-Above the per-repo indexes sit two more zoom levels — the index hierarchy is:
-
-- `~/.ai-workflow/system-map.md` — STRUCTURE across all repos: what each repo does, entry
-  points, public surfaces, integration edges. The agent-facing context cache — built once
-  by `prompts/system-map-scan.md`, patched at close-the-loop, so agents stop re-exploring
-  every repo every session (template: `templates/system-map.md`)
-- `~/.ai-workflow/portfolio.md` — STATUS across all projects: what's active, current focus,
-  next milestone. Human-facing (template: `templates/portfolio.md`)
-- `<repo>/spec-map.md` — areas within one repo
-- `.spec/<ticket>/ai-development-map.md` — read-order within one ticket
-
-`portfolio.md` is generated by the gh-CLI scan in `prompts/portfolio-scan.md` — same
-anti-drift rule as spec-map: regenerate, don't hand-edit. Refresh monthly, before starting
-a new project (overlap check), or when deciding what to work on next. Status downgrades and
-archiving are human decisions; the scan only flags them.
-
-Team-scale alternative: a GitHub Projects (v2) org-level board pulls issues from many repos
-into one roadmap/timeline view — the right tool when several humans need the same picture.
-For a solo dev working with agents, a generated markdown file wins: agents read files, not UIs.
-
-The generator is a **drift detector and a new-project starter, not a replacement tool**:
-
-- **New large project** (no map yet): generate the first `spec-map.md`, then hand-add grouping.
-- **Existing curated map**: do NOT overwrite it. Run `build-spec-map.ps1 -DryRun` and diff the
-  output against the current map to catch areas added/removed on disk but missing from the map.
-- **Never regenerate a `spec-map.md` that carries more than a Spec Areas table** (extra sections
-  like release state / policies, or one referenced by tests) — the script would destroy those
-  sections and can break CI. Update such maps by hand.
+Detailed rules for `spec-map.md`, `system-map.md`, `portfolio.md`, and their
+generators live in [context-management.md](context-management.md). Keep this
+file focused on the execution loop.
 
 ## Blockers and pitfalls
 
@@ -138,17 +119,15 @@ For any non-code blocker, report:
 - `impact`
 - `next_action_needed`
 - `fallback_path`
+- `last_successful_command`
+- `working_directory`
+- `required_environment_or_input`
 
 If a blocker is solved and the workaround is likely reusable, ask the user whether to capture it as a pitfall. If they say yes, record it in the appropriate layer:
 
 - global reusable pitfall -> `~/.ai-workflow/pitfalls/`
 - repo-specific pitfall -> local repo workflow notes
 - ticket-specific pitfall -> `.spec/<ticket>/ai-development-map.md`
-
-## The rule
-
-**Verify ≠ Review.** Verify answers "does it work?"; review answers "is it good?".
-Most teams collapse them. Don't.
 
 ## Parallel agents
 
@@ -163,23 +142,27 @@ not a requirement for the workflow.
 | Stage | Parallel pattern | Why |
 |---|---|---|
 | **Define** (audit-heavy) | N × read-only explorers, each on a different code area | Reduces wall-clock time without mixing raw context |
-| **Review** | fresh reviewer + separate security / performance lenses | Different contexts do not share the same blind spots |
+| **Review** | fresh reviewer + risk-specific specialist lenses | Different contexts do not share the same blind spots |
 | Investigation / spec gap-finding | one read-only worker per repo or concern | Independent context produces independent conclusions |
 | Verifying a non-trivial claim | second-opinion worker while the main agent continues unrelated work | Cheap insurance when the claim matters |
 
 ### Do NOT use parallel agents for
 
-- Sequential TDD (red → green → refactor — needs same context)
-- One-task-one-commit Build cycles (single builder, no fan-out)
+- A sequential test-first cycle (red → green → refactor needs the same context)
+- Multiple writers touching the same files or depending on uncommitted output
 - Anything requiring a user decision mid-stream
 - Single-file edits where main session is faster anyway
-- Verify (one test runner, deterministic)
+- One deterministic verification command; independent verification surfaces may
+  run in parallel when their outputs stay separate
 - Ship (linear: commit → PR → ADR)
 
 ### How to call them well
 
 - **Dispatch independent calls concurrently.** Use the tool's actual parallel mechanism; sequential calls do not become parallel because the prompts look similar.
-- **Each prompt is self-contained.** The agent has no view of main-session history. Include file paths, the question, and what form the answer should take.
+- **Each prompt is a bounded role contract.** Include the phase and role,
+  allowed scope, exclusive ownership, constraints, done criteria, evidence
+  format, permissions, and budget or stop condition. A fresh worker does not
+  inherit the main conversation unless the tool explicitly says it does.
 - **Cap each agent's report length.** Long reports refill main context — defeats the purpose. "Report in under 200 words" is a fair default.
 - **Pick the right role and permissions, not a product-specific agent name.**
   - read-only explorer — file discovery and bounded code search
@@ -187,69 +170,63 @@ not a requirement for the workflow.
   - builder — one specified implementation slice in an isolated worktree
   - tester / reviewer — deterministic verification or a fresh judgment context
 - **Trust but verify.** Agent summaries describe intent, not always reality. If an agent claimed to edit files, check the diff yourself before reporting work as done.
-- **Don't duplicate work.** If you delegated research to an agent, do NOT also grep / read the same files — your job during the wait is something else (write the next test, draft the spec, prep the review checklist).
+- **Do not repeat the whole delegated exploration.** Continue independent work
+  during the wait, then spot-check load-bearing claims, the final diff, and the
+  evidence before using the report.
+- **Keep verification independent.** A verifier tries to refute the claim and
+  reports before fixing anything. The orchestrator or an authorized builder
+  owns the patch and reruns affected verification.
 
-### Audit pattern (concrete example)
-
-For a wide cross-repo audit, dispatch concurrently:
-
-```
-Worker 1 (read-only): audit Repo-A for <pattern> — under 200 words
-Worker 2 (read-only): audit Repo-B for <pattern> — under 200 words
-Worker 3 (read-only): audit Repo-C for <pattern> — under 200 words
-Worker 4 (read-only): cross-reference shared library usage — under 200 words
-```
-
-Then synthesize the four reports into `.spec/<ticket>/audit.md`.
-
-This is the move I should have made on a real cross-repo audit ticket — instead I serially grepped each repo, which worked but took ~4× longer and pulled raw results into main context.
+For a concrete fan-out and synthesis template, use
+[`prompts/parallel-audit.md`](prompts/parallel-audit.md).
 
 ### Review depth scales with risk
 
-Default is **one reviewer** (fresh context, `prompts/review-checklist.md`). A full multi-lens
-panel on every diff burns tokens without reliably adding findings on low-risk changes.
+Default is **one reviewer** with fresh context
+(`prompts/review-checklist.md`). Multiple reviewers on every diff burn tokens
+without reliably adding findings on low-risk changes.
 
-Escalate to the 3-lens panel below only when the diff touches:
+Add only the relevant review lenses when the diff touches:
 
 - auth / permissions / session handling
 - money, transactions, or data migrations
 - concurrency or caching
 - public API contracts
+- production operations, availability, or material cost
 
 Same list as PHILOSOPHY.md's "half-done is worse than not-done" categories — the ones that
-already demand integration tests get the panel; everything else gets one reviewer.
+already demand integration tests get deeper review; everything else gets one reviewer.
 
-### Review pattern (3-lens panel, high-risk diffs only)
+### Review pattern (risk-specific, high-risk diffs only)
 
-After Build is complete, in one message spawn:
+After Build, select the smallest useful panel. For example:
 
 ```
-Worker A (fresh reviewer): spec-conformance review against .spec/current.md
-Worker B (security lens): OWASP top-10 review of the diff
-Worker C (performance lens): DB queries, N+1, hot paths
+Worker A (fresh reviewer): spec conformance against .spec/<ticket>/current.md
+Worker B (security, when relevant): trust boundaries, auth, injection, secrets
+Worker C (data integrity, when relevant): transactions, retries, migrations
+Worker D (performance, when relevant): queries, N+1, hot paths, cost
+Worker E (compatibility, when relevant): public API and rollout behavior
 ```
 
-Three independent reports = three independent blind spots covered.
-Human reads all three, decides what to accept.
+The human reads the reports, rejects or accepts each finding, and requires
+reverification after any fix. Do not spawn a specialist whose risk is absent.
 
 ## Model routing: one workflow, different autonomy
 
-Do not maintain separate strong-model and weak-model workflows. Every model must
-meet the same acceptance criteria, verification, review, and evidence gates. Model
-capability changes task shape and autonomy, not the definition of done.
+Do not maintain separate strong-model and weak-model workflows. Every model
+must meet the same acceptance criteria, verification, review, and evidence
+gates. Model capability changes task shape and autonomy, not the definition of
+done.
 
-| Stage | Default capability | Why |
-|---|---|---|
-| **Define** | strongest reasoning available | resolve ambiguity, constraints, and failure modes |
-| **Plan** | strongest reasoning available | make architecture and dependency order explicit |
-| **Build** | general coding model | the spec should reduce the work to one atomic slice |
-| **Verify** | fast / low-cost model or deterministic runner | execute known commands and report exact output |
-| **Review** | strongest reasoning available, fresh context | challenge the implementation and reconcile evidence |
-| **Ship** | fast / low-cost model | assemble status, commit, and PR evidence; human owns release approval |
+Use a **general coding model by default** for bounded Define, Plan, Build, and
+Review work. Prefer deterministic tools over a model for Verify; use a fast
+model only to classify or summarize exact output. A fast model can also prepare
+routine Ship metadata, but it cannot grant approval.
 
-These are defaults, not brand mappings. Provider model names, prices, and aliases
-change faster than this workflow should. Choose the current model that matches the
-capability profile in the provider you are actually using.
+Escalate to the strongest reasoning tier only when ambiguity, risk, scope, or
+conflicting evidence requires broader judgment. These are capability profiles,
+not brand mappings: provider names and prices change faster than this workflow.
 
 ### How the operating style changes
 
@@ -265,6 +242,30 @@ Escalate one tier when requirements remain ambiguous, a decision crosses system
 boundaries, the diff touches auth / money / migrations / concurrency / public APIs,
 evidence conflicts, or the current model fails twice on the same bounded task. A
 stronger model may inspect a wider context; it may never waive a gate.
+
+If the preferred model is unavailable, use the next capable tier, shrink the
+task if necessary, and preserve every acceptance and evidence gate. Bind model
+names in tool adapters or role definitions, not in this canonical policy.
+
+## Approval gates
+
+An agent may prepare plans, diffs, migration commands, release notes, or a PR,
+but it must obtain explicit human authorization before it performs:
+
+- a merge into the repository's default or integration branch
+- a database migration, destructive operation, or irreversible data change
+- a production deployment, traffic cutover, or infrastructure mutation
+- a payment action or a write involving production user data
+- an external message, publication, or other action on the user's behalf
+
+Also stop before source writes when the user explicitly requested plan-first
+work, or when the proposed plan introduces a material architecture, scope, or
+risk decision that the original request did not authorize.
+
+Approval is scoped to the named action and environment. Permission to open a PR
+does not imply permission to merge it; permission to deploy staging does not
+imply permission to deploy production. Record the approved action, environment,
+and approver in the ticket handoff or PR.
 
 ## What humans always own
 
