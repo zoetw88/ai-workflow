@@ -88,8 +88,10 @@ or wording.
 - GitHub Markdown API — rendered 8 headings, 1 table, and 3 details blocks.
 - `git diff --check` — passed (Git only reported expected LF/CRLF checkout
   notices).
-- Claude plugin CLI validation was not run because `claude` is not installed in
-  this environment; JSON parsing and mirror-contract tests are the local proof.
+- Official Claude Code CLI `2.1.210` was installed at
+  `C:\Users\Zoe\.local\bin\claude.exe`. Both strict validators passed:
+  `claude plugin validate --strict .` and
+  `claude plugin validate --strict .\claude-code\plugin`.
 
 ## Published handoff
 
