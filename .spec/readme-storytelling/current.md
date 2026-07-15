@@ -19,16 +19,16 @@ coding agent that can read project instructions and produce verifiable work.
       remain documented.
 - [x] Public links use `zoe-builds.com`; local Markdown links resolve.
 - [x] GitHub Markdown rendering and repository verification pass.
-- [ ] README presents the generic agent path first; Claude Code and Codex are
+- [x] README presents the generic agent path first; Claude Code and Codex are
       adapters, not prerequisites.
-- [ ] README explains that strong and weaker models use one workflow with
+- [x] README explains that strong and weaker models use one workflow with
       different task granularity, autonomy, and escalation rules.
-- [ ] `workflow.md` describes parallel agents and model routing by capability,
+- [x] `workflow.md` describes parallel agents and model routing by capability,
       without assuming Claude-specific agent types or hard-coding provider
       versions and prices.
-- [ ] The Claude plugin mirror and version stay aligned with the canonical
+- [x] The Claude plugin mirror and version stay aligned with the canonical
       workflow change.
-- [ ] GitHub's public repository description no longer frames the project as a
+- [x] GitHub's public repository description no longer frames the project as a
       Claude-only template collection.
 
 ## Non-goals

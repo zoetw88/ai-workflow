@@ -49,3 +49,14 @@ fast models get bounded deterministic tasks, general coding models get atomic
 implementation slices, and the strongest available model handles ambiguity,
 architecture, conflict, and high-risk review. Stronger models receive more
 judgment-heavy work, never weaker verification requirements.
+
+### Verification
+
+- Validated 26 relative links across 13 Markdown files.
+- Rendered `README.md` through GitHub's Markdown API: 12 headings, 22 links,
+  and 5 tables were present in the rendered result.
+- Parsed the Claude plugin manifest and confirmed version `0.3.0`.
+- `git diff --check` and `python scripts/check_close_the_loop.py` passed.
+- The local environment has no `claude` executable, so
+  `claude plugin validate` could not be run; this is an environment blocker,
+  not a passing plugin-CLI result.
