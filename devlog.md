@@ -1,5 +1,20 @@
 # Devlog
 
+## 2026-07-15 — readme-workflow-refresh — make adoption safer and the controls proportional
+
+- **What**: Move a guarded, tool-agnostic Quick start to the top of README;
+  align the canonical workflow and Claude mirror around risk-based isolation,
+  review, model routing, and approval; harden local task/worktree and pre-push
+  guards.
+- **Why**: The public page was table-heavy, the generic path was secondary, and
+  several written guarantees disagreed with what the local scripts enforced.
+- **Spec/Plan**: `.spec/readme-workflow-refresh/current.md`
+- **Evidence**: 15 contract/integration tests, PowerShell parse, JSON parse,
+  relative-link validation, GitHub Markdown render, and `git diff --check` pass.
+- **Notes**: Pilotfish influenced only the attributed, tool-agnostic role
+  contract and fresh-verifier ideas. Claude CLI validation remains unavailable
+  because the CLI is not installed.
+
 ## 2026-07-15 — readme-storytelling — make the workflow portable across agents and model tiers
 
 - **What**: Make the canonical workflow usable by any coding agent, move

@@ -4,7 +4,7 @@ Priority order — stop at the first level that finds blocking issues.
 
 ## 1. Spec conformance (highest)
 
-- [ ] Implements every required test case in `.spec/current.md`?
+- [ ] Implements every required test case in `.spec/<ticket>/current.md`?
 - [ ] Stays inside scope (no scope creep)?
 - [ ] Respects stated invariants?
 - [ ] If deviates from spec, is the deviation documented?
