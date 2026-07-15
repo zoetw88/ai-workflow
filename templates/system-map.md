@@ -6,6 +6,8 @@
 > whenever a change alters anything recorded here. A stale map is a bug — fix it in
 > the same PR that made it stale.
 > Last full scan: YYYY-MM-DD
+> Validate locally: `python scripts/validate_system_map.py --map ~/.ai-workflow/system-map.md`
+> Optional map: append `--if-present`; the private map is never sent to CI.
 
 ## Repos
 

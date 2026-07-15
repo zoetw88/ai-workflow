@@ -1,5 +1,21 @@
 # Devlog
 
+## 2026-07-15 — workflow-enforcement — make WIP flexible and Ship evidence enforceable
+
+- **What**: Add WIP/Ship living-doc validation, warning-only acceptance-quality
+  annotations, a private system-map validator, and read-only PR CI with pinned
+  GitHub actions and Claude CLI. Align the canonical docs, optional Claude
+  mirror, and the bilingual `zoe-site` article.
+- **Why**: The old close-loop guard proved only that a living file changed;
+  hosted checks, local map claims, and falsifiable acceptance wording were not
+  enforced or independently visible.
+- **Spec/Plan**: `.spec/workflow-enforcement/current.md`
+- **Evidence**: Full Python contracts, two strict Claude validations, local
+  private-map validation, GitHub Markdown render, bilingual Node contracts,
+  Astro check/build, and desktop/mobile browser QA.
+- **Boundary**: GitHub-hosted status appears only after the PR opens; live site
+  deployment and branch-protection changes remain outside this task.
+
 ## 2026-07-15 — readme-workflow-refresh — make adoption safer and the controls proportional
 
 - **What**: Move a guarded, tool-agnostic Quick start to the top of README;

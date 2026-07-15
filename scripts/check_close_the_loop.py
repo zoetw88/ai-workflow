@@ -19,6 +19,12 @@ Wire-up (pre-commit framework, pre-push stage) — see pre-commit.template.yaml.
 import os
 import subprocess
 import sys
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+from validate_workflow_docs import emit_report, validate_workflow_documents
 
 ZEROS = "0" * 40
 PROJECT_LIVING_PATHS = {"devlog.md", "todo.md"}
@@ -95,19 +101,27 @@ def main():
     code = [f for f in files if not is_doc(f)]
     if not code:
         return 0
-    if any(is_living_doc(f) for f in files):
-        return 0
+    if not any(is_living_doc(f) for f in files):
+        sys.stderr.write(
+            "close-the-loop: this push changes code but no living-tier doc.\n"
+            "workflow.md requires updating, in the SAME PR:\n"
+            "  .spec/<ticket>/{current.md,tasks.md}\n"
+            "  devlog.md (newest-on-top entry) and todo.md\n"
+            f"Code files pushed without docs ({len(code)}): {', '.join(code[:5])}"
+            f"{' …' if len(code) > 5 else ''}\n"
+            "Intentional? CLOSE_THE_LOOP=skip git push   (or git push --no-verify)\n"
+        )
+        return 1
 
-    sys.stderr.write(
-        "close-the-loop: this push changes code but no living-tier doc.\n"
-        "workflow.md requires updating, in the SAME PR:\n"
-        "  .spec/<ticket>/{current.md,tasks.md}\n"
-        "  devlog.md (newest-on-top entry) and todo.md\n"
-        f"Code files pushed without docs ({len(code)}): {', '.join(code[:5])}"
-        f"{' …' if len(code) > 5 else ''}\n"
-        "Intentional? CLOSE_THE_LOOP=skip git push   (or git push --no-verify)\n"
-    )
-    return 1
+    report = validate_workflow_documents(os.getcwd(), files, "wip")
+    emit_report(report)
+    if not report.ok:
+        sys.stderr.write(
+            "close-the-loop: living-doc structure is invalid. This guard still "
+            "cannot prove semantic correctness.\n"
+        )
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
