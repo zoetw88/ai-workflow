@@ -66,6 +66,27 @@ class CanonicalWorkflowContractTests(unittest.TestCase):
         self.assertIn("The guard is intentionally narrow", workflow)
         self.assertIn("cannot prove", workflow)
 
+    def test_workflow_documents_wip_ship_and_warning_boundaries(self):
+        workflow = read("workflow.md")
+        spec_template = read("templates/spec.md")
+
+        self.assertIn("WIP mode", workflow)
+        self.assertIn("Ship mode", workflow)
+        self.assertIn("including canonical Markdown", workflow)
+        self.assertIn("warning", workflow)
+        self.assertIn("## Goal", spec_template)
+        self.assertIn("Observable:", spec_template)
+        self.assertIn("Environment:", spec_template)
+        self.assertIn("Verify:", spec_template)
+
+    def test_private_system_map_has_a_local_validation_path(self):
+        context = read("context-management.md")
+        template = read("templates/system-map.md")
+
+        self.assertIn("scripts/validate_system_map.py", context)
+        self.assertIn("scripts/validate_system_map.py", template)
+        self.assertIn("--if-present", context)
+
     def test_core_workflow_stays_a_map_instead_of_a_monolithic_manual(self):
         workflow = read("workflow.md")
 
@@ -94,7 +115,10 @@ class AdapterConsistencyContractTests(unittest.TestCase):
 
         self.assertIn("proportional", mirror)
         self.assertIn("Approval gates", mirror)
-        self.assertGreaterEqual(version, (0, 4, 0))
+        self.assertIn("WIP mode", mirror)
+        self.assertIn("Ship mode", mirror)
+        self.assertIn("including canonical Markdown", mirror)
+        self.assertGreaterEqual(version, (0, 5, 0))
 
     def test_mirror_does_not_retain_superseded_mandates(self):
         mirror = read("claude-code/plugin/skills/six-stage-workflow/SKILL.md")

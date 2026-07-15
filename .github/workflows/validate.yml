@@ -1,0 +1,54 @@
+name: Validate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Workflow contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Run repository tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Enforce Ship living-doc contract
+        run: >-
+          python scripts/validate_workflow_docs.py
+          --root .
+          --mode ship
+          --project-type personal
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.event.pull_request.head.sha }}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+
+      - name: Install pinned Claude CLI
+        run: npm install --global @anthropic-ai/claude-code@2.1.210
+
+      - name: Validate Claude marketplace
+        run: claude plugin validate --strict .
+
+      - name: Validate packaged Claude plugin
+        run: claude plugin validate --strict claude-code/plugin

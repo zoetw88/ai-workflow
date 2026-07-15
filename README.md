@@ -74,6 +74,15 @@ pwsh ~/.ai-workflow/scripts/start-task.ps1 -RepoPath C:\path\to\repo
 
 </details>
 
+Local pre-push uses **WIP mode**: draft checkboxes may remain open, but ticket
+documents must be structurally valid. Pull requests use **Ship mode** in
+GitHub-hosted CI: changes outside the living tier, including substantive
+Markdown, require completed living docs; repository tests and both strict
+Claude adapter validators must pass. CI pins the project type so a PR cannot
+disable its own personal-project policy. Acceptance criteria should name an
+observable result, environment, and verification step; weak wording warns
+without blocking. These checks validate evidence structure, not factual truth.
+
 ## The operating loop
 
 | Stage | The question | Evidence it leaves behind |
@@ -128,7 +137,7 @@ by lowering the definition of done. See the full routing policy in
   verification actions.
 - [`pitfalls/`](pitfalls) — pre-write checklists for mistakes agents repeat.
 - [`templates/`](templates) — project rules, specs, tasks, ADRs, maps, and hooks.
-- [`scripts/`](scripts) — task bootstrap, spec-map generation, and close-loop guard.
+- [`scripts/`](scripts) — task bootstrap, map validation, and WIP/Ship close-loop guards.
 - [`claude-code/plugin/`](claude-code/plugin) — optional Claude Code adapter.
 
 Canonical documents stay tool-agnostic. Adapter copies that declare a
