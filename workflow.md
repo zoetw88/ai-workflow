@@ -8,8 +8,9 @@ Role contracts and fresh-context refutation also draw on the MIT-licensed
 ## Stages
 
 1. **Define** — Turn the request into scope, constraints, non-goals, and
-   acceptance criteria in `.spec/<ticket>/current.md`. Ask only questions whose
-   answers materially change the result or authorization boundary.
+   acceptance criteria in `.spec/<ticket>/current.md`. Each criterion should
+   name an **Observable** result, **Environment**, and exact **Verify** command
+   or manual step. Ask only questions that change the result or authorization.
 2. **Plan** — Break the accepted spec into atomic, dependency-ordered tasks in
    `.spec/<ticket>/tasks.md`. Each task names its change surface and verification.
 3. **Build** — Implement one accepted slice at a time on a feature branch. Use
@@ -73,19 +74,20 @@ line in the same PR (see `prompts/system-map-scan.md`).
 
 ### Close the loop (before opening a PR)
 
-1. Update every living-tier doc the change touched (`current.md`, `tasks.md`).
-2. Append a newest-on-top entry to project `devlog.md`, linking back to the ticket's spec/ADR.
-3. Refresh `todo.md`.
-4. If the change added/removed/renamed an entry point, public endpoint, event, integration
-   edge, or shared lib, patch `~/.ai-workflow/system-map.md` too.
-5. Commit the doc updates into the SAME PR as the change.
+1. Update the ticket's `current.md` and `tasks.md`.
+2. For personal projects, update newest-on-top `devlog.md` and `todo.md`.
+3. Patch `~/.ai-workflow/system-map.md` when a recorded entry point, public surface, integration edge, or shared library changed.
+4. Commit repository doc updates in the same PR as the change.
 
-`scripts/check_close_the_loop.py` can be wired at pre-push through
-`templates/pre-commit.template.yaml`. The guard is intentionally narrow: it
-rejects a code push when no living-tier document changed. It cannot prove that
-the right documents were updated, that their content is accurate, or that the
-system map is current. Review those obligations before Ship. Escape hatch for
-intentional exceptions: `CLOSE_THE_LOOP=skip git push`.
+`scripts/check_close_the_loop.py` can be wired at pre-push through `templates/pre-commit.template.yaml`. In **WIP mode**, it rejects code without a
+touched ticket document and checks the ticket pair, required headings, and placeholders;
+unchecked work remains valid. In **Ship mode**, any change outside the living tier,
+including canonical Markdown, requires changed `current.md` and `tasks.md` from the same
+ticket, no unchecked items, and personal-project `devlog.md` plus `todo.md`; CI pins project type so a PR cannot disable that policy. Weak acceptance wording emits a warning when Observable,
+Environment, or Verify fields are missing; the warning does not fail either mode.
+The guard is intentionally narrow: it validates structure, not truth. It cannot prove
+that evidence is sufficient, prose is accurate, or the private system map is current.
+Review those obligations before Ship. Escape hatch: `CLOSE_THE_LOOP=skip git push`.
 
 ### Project type
 

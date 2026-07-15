@@ -28,7 +28,9 @@ Above each repository sit two optional views:
 
 - `~/.ai-workflow/system-map.md` — structure across repositories: entry points,
   public surfaces, integration edges, and shared libraries. Build it with
-  `prompts/system-map-scan.md`; spot-check only the edges a ticket touches.
+  `prompts/system-map-scan.md`; spot-check only the edges a ticket touches. Run
+  `python scripts/validate_system_map.py --map ~/.ai-workflow/system-map.md`
+  after edits, or add `--if-present` when the private map is optional.
 - `~/.ai-workflow/portfolio.md` — project status, current focus, and next
   milestone. Generate it with `prompts/portfolio-scan.md`; status downgrade and
   archival remain human decisions.
@@ -53,3 +55,7 @@ Generators are drift detectors and initializers, not replacement tools:
 - Curated map: never overwrite; patch only the stale entries.
 - When reality contradicts a map, reality wins. Correct the affected line in
   the same PR when it is inside the authorized change surface.
+
+The validator checks declared local paths, Git roots, entrypoint paths, and
+template placeholders. It never uploads the map and cannot prove integration
+semantics; CI exercises only public fixtures.

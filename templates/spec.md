@@ -1,7 +1,7 @@
 # <Feature name>
 
-## Context
-<Why this exists. Business motivation. Link to ticket.>
+## Goal
+<Why this exists, the observable outcome, and the ticket link.>
 
 ## Scope
 
@@ -10,6 +10,15 @@
 
 ### Out
 - ...
+
+## Acceptance criteria
+
+Use one block per criterion. Missing fields produce a warning so old or draft
+specs stay workable; Ship still requires every checkbox to be complete.
+
+- [ ] Observable: <result a reviewer can see or measure>
+  - Environment: <local, CI, staging, production, or named device>
+  - Verify: <exact command or numbered manual steps>
 
 ## Interface
 
@@ -60,6 +69,7 @@
 Each "no" goes back into the spec above — not into a mental note.
 
 - [ ] Every test case is falsifiable (a command or observable behavior can prove it)
+- [ ] Every acceptance criterion names Observable, Environment, and Verify evidence
 - [ ] Scope Out + Non-goals actually exclude something (empty = scope not thought through)
 - [ ] No conflict with settled ADRs for this area (checked, not assumed)
 - [ ] Error table covers every external dependency listed under Dependencies
