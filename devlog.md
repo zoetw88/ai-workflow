@@ -13,8 +13,8 @@
 - **Evidence**: 15 contract/integration tests, PowerShell parse, JSON parse,
   relative-link validation, GitHub Markdown render, and `git diff --check` pass.
 - **Notes**: Pilotfish influenced only the attributed, tool-agnostic role
-  contract and fresh-verifier ideas. Claude CLI validation remains unavailable
-  because the CLI is not installed.
+  contract and fresh-verifier ideas. Official Claude Code CLI `2.1.210` strict
+  validation passes for both the marketplace and packaged plugin.
 
 ## 2026-07-15 — readme-storytelling — make the workflow portable across agents and model tiers
 
@@ -28,7 +28,8 @@
 - **Continues**: README storytelling work in PR #15
 - **Notes**: Strong and weaker models keep the same acceptance criteria and
   evidence gates; task size, autonomy, permissions, and escalation differ.
-  Claude plugin validation remains blocked because the CLI is not installed.
+  At that commit, Claude plugin validation was blocked because the CLI was not
+  installed; the later README/workflow refresh completed strict validation.
 
 ## 2026-07-15 — readme-storytelling — make the public entry point sound like Zoe
 
