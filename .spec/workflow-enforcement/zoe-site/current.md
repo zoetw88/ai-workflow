@@ -16,7 +16,8 @@ preserving the existing article design and voice.
   - Verify: Astro check/build and manual inspection of both article routes.
 - [x] Observable: `zoe-site` pull-request CI runs the bilingual contract before
       either article can merge independently.
-  - Environment: read-only GitHub-hosted `Build check`.
+  - Environment: read-only GitHub Actions `Build check` on an ephemeral Windows
+    self-hosted runner.
   - Verify: inspect the coordinated article PR check before merge.
 
 ## Non-goals
