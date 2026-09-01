@@ -2,11 +2,19 @@
 
 Based on Addy Osmani's agent-skills, simplified.
 
+## Routing gate
+
+Use the installed `flow` Skill only for substantial multi-file features,
+coordinated cross-repository changes, or high-risk behavior. Do not use it for
+questions, audits, routine tests, small or single-file fixes, or work covered
+by a focused Skill. The installed Skill is authoritative when this background
+reference disagrees with it.
+
 ## Stages
 
 1. **Define** — Grill the user. Produce `.spec/current.md`.
 2. **Plan** — Break the spec into atomic tasks. Produce `.spec/tasks.md`.
-3. **Build** — Implement one task at a time. TDD. One commit per task.
+3. **Build** — Implement coherent tasks with verification proportionate to risk.
 4. **Verify** — Run tests. Tests are proof. Verify is NOT review.
 5. **Review** — Independent reviewer (fresh context). Check spec conformance + AI smells.
 6. **Ship** — Commit message, PR description, ADR if architectural. Run the close-the-loop checklist (see Context discipline) before opening the PR.
