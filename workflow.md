@@ -70,7 +70,7 @@ decides: honor the past decision, or update the docs because the new requirement
 Cross-repo task → also read `~/.ai-workflow/system-map.md` FIRST, before any Explore
 fan-out. Spot-verify only the entry points and edges the ticket touches; do NOT re-explore
 repos the ticket doesn't touch. If the map contradicts reality, the map is stale — fix that
-line in the same PR (see `prompts/system-map-scan.md`).
+line in the local-only map (see `prompts/system-map-scan.md`). Never include the private map in a PR; commit only shareable repository documentation.
 
 ### Close the loop (before opening a PR)
 

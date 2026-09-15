@@ -1,18 +1,19 @@
 ---
 name: grill-me
-description: Use when a feature request is vague or under-specified. Ask 3-7 targeted clarifying questions before proposing any solution or writing any code.
+description: Clarify consequential unresolved requirements after checking existing context; ask only necessary questions and continue independent work.
 ---
 
-The user has given you a vague or under-specified request. **Do not
-propose a solution yet.** First, grill them with targeted questions.
+When a request is under-specified, first inspect available context and contracts.
+Ask about consequential gaps without reopening settled decisions or imposing a
+question quota. A vague request alone does not require stopping all useful work.
 
 ## Process
 
-1. Read the request. Identify the ambiguities.
-2. Pick 3-7 questions that, when answered, would change the design.
-3. Ask them, structured as a numbered list.
-4. Wait for answers.
-5. THEN propose.
+1. Read the request, prior decisions, repository contracts, and relevant task docs.
+2. Identify consequential unknowns that cannot be resolved from those sources.
+3. Ask the minimum necessary questions using the available question tool; do not repeat answers or approvals already given.
+4. Continue independent work while waiting. Defer work that depends on a required answer; elapsed time is not an answer or approval.
+5. If no consequential unknown remains, proceed. Use established contracts for routine choices and state material assumptions; do not invent product or data-loss guarantees.
 
 ## What makes a good clarifying question
 

@@ -1,15 +1,12 @@
 # Grill Me — interactive requirement clarification
 
-Inspired by Matt Pocock's pattern. AI does not propose a solution. AI only asks until requirements are clear.
+Inspired by Matt Pocock's pattern. Resolve consequential unknowns using existing context first, then ask only what remains necessary.
 
 ## How to use
 
-When a vague request leaves material product, risk, or authorization decisions
-unresolved, ask only the questions needed to settle them. First inspect the
-repository, ticket, and existing decisions for answers; do not ask the user to
-repeat discoverable context.
+Read the request, prior decisions, repository contracts, and relevant task docs before asking. Use the dimensions below to identify consequential gaps, not as a mandatory questionnaire. Ask the minimum needed questions; continue independent work while waiting and defer only work that depends on a required answer.
 
-### Required dimensions (skip only if explicit in the request)
+### Dimensions to consider (skip irrelevant or already resolved items)
 
 1. **Scope boundary**
    - What is in scope vs. out of scope?
@@ -51,12 +48,11 @@ repeat discoverable context.
 
 ## Rules
 
-- Ask only questions whose answers change scope, behavior, risk, or authority
-- Prefer one question at a time; group only when the answers are independent
+- ONE question per dimension — don't sprawl
 - Phrase as "Do you want X or Y?" when possible, not open-ended
-- If user can't answer, propose a sensible default and call out the assumption
-- Stop when the remaining uncertainty no longer changes the result
-- DO NOT propose implementation details until grill is done
+- For routine implementation choices, use existing contracts and state any material assumption. Do not guess consequential product, authorization, or data-loss decisions.
+- Summarize resolved decisions when useful; do not add a mandatory confirmation round or repeat an approval already given.
+- If no consequential unknown remains, proceed. There is no question quota or mandatory interview phase.
 
 ## When NOT to grill
 

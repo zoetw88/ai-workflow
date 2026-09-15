@@ -8,6 +8,8 @@ Claude Code plugin adapters; it is not an application runtime.
 
 ## Canonical sources
 
+- Follow `docs/rule-distribution.md` when synchronizing shared rules, local installations, or plugin adapters. Preserve private overlays separately and record the installed source revision.
+
 - Process changes belong in `workflow.md`.
 - Principle changes belong in `PHILOSOPHY.md`.
 - Reusable technical traps belong in `pitfalls/`.

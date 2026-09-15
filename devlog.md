@@ -1,5 +1,9 @@
 # Devlog
 
+## 2026-09-15 — rule delivery preparation
+
+Align rule distribution, clarification, debugging and private-map handling; retain the current plugin baseline and increment it to 0.5.1. Validation and scope: `.spec/rules-delivery-20260915/audit.md`. Prepared locally; no remote publication.
+
 ## 2026-07-15 — workflow-enforcement — make WIP flexible and Ship evidence enforceable
 
 - **What**: Add WIP/Ship living-doc validation, warning-only acceptance-quality

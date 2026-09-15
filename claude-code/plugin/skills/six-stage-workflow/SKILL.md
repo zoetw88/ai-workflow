@@ -3,8 +3,13 @@ name: six-stage-workflow
 description: Use for non-trivial features, bug fixes, or refactors. Enforces Define → Plan → Build → Verify → Review → Ship with proportional isolation, test-first behavior changes, evidence, risk-based review, and approval gates.
 ---
 
-<!-- Canonical source: ~/.ai-workflow/workflow.md — if that file exists on this machine,
-     read it instead; it is the full version and may be newer than this embedded copy. -->
+<!-- Canonical source: workflow.md in the maintained ai-workflow repository.
+     A local ~/.ai-workflow/workflow.md may be used when its installed source
+     revision is known; existence alone does not establish that it is newer.
+     See docs/rule-distribution.md in the source repository. -->
+
+Keep private system maps local. Updating a local map does not authorize including
+it in a PR or synchronizing a personal configuration directory into this plugin.
 
 # The six stages
 
